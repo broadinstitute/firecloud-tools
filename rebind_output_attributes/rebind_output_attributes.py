@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from firecloud_tools_lib import *
+from common import *
 
 def fix_outputs(ws_namespace, ws_name, submission_id, expressions_override):
     # get the workspace
