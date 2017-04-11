@@ -51,6 +51,16 @@ def fix_outputs(ws_namespace, ws_name, submission_id, expressions_override):
                 output_expression = mc_outputs[mc_output_key]
             output_attribute = output_expression.replace("this.", "")
             tsv_headers.append(output_attribute)
+
+        for override_key in expressions_override:
+
+            # if the user provided expression doesn't override an output, then make sure to bind that too
+            if override_key not in mc_output_keys:
+                mc_output_keys.append(override_key)
+                output_expression = expressions_override[override_key]
+                output_attribute = output_expression.replace("this.", "")
+                tsv_headers.append(output_attribute)
+
         entity_writer.writerow(tsv_headers)
 
         # go through each workflow in this submission
