@@ -18,7 +18,7 @@ import csv
 import xlrd
 from xlrd.sheet import ctype_text
 import re   
-from firecloud import api
+from firecloud import api as firecloud_api
 from google.cloud import bigquery
 import operator
 
@@ -33,7 +33,27 @@ import signal
 import sys
 from time import sleep
 
+import tempfile
+
 processes = []
+
+def print_fields(obj):
+    for item in vars(obj).items():
+        print item
+
+
+def setup():
+    credentials = GoogleCredentials.get_application_default()
+    print "Using Google client id:", credentials.client_id
+
+
+def get_workflow_metadata(namespace, name, submission_id, workflow_id):
+    headers = firecloud_api._fiss_access_headers()
+    uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}".format(
+        firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id)
+
+    return requests.get(uri, headers=headers).json()
+
 
 def signal_handler(signal, frame):
     print('\n\n...Exiting...\n\n')
@@ -48,18 +68,11 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 
-global_error_message = """    ******************************************************************************
-* ERROR: Unable to access your google credentials.                           *
-*                                                                            *
-* This is most often caused by either                                        *
-*     (a) not having gcloud installed (see https://cloud.google.com/sdk/)    *
-*     (b) gcloud is not logged in (run 'gcloud auth login')                  *
-******************************************************************************"""
-
 def fail(message):
     print "\n\nExiting -- %s" % message
     sys.exit(1)
-    
+
+
 def prompt_to_continue(msg):
     sys.stdout.write("\n%s [y/n]: " % msg)
     
