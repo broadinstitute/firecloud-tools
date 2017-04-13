@@ -1,0 +1,258 @@
+done: true
+metadata:
+  '@type': type.googleapis.com/google.genomics.v1.OperationMetadata
+  clientId: ''
+  createTime: '2017-02-08T15:32:05Z'
+  endTime: '2017-02-09T03:48:10Z'
+  events:
+  - description: start
+    startTime: '2017-02-08T15:32:54.568750038Z'
+  - description: pulling-image
+    startTime: '2017-02-08T15:32:56.600074361Z'
+  - description: localizing-files
+    startTime: '2017-02-08T15:34:37.671375257Z'
+  - description: running-docker
+    startTime: '2017-02-08T16:58:20.212927237Z'
+  - description: delocalizing-files
+    startTime: '2017-02-09T03:46:33.268319349Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz.tbi"
+    startTime: '2017-02-09T03:46:34.644701481Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.summary.usage.txt"
+    startTime: '2017-02-09T03:46:35.615138803Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/snowman_intermediates.tar"
+    startTime: '2017-02-09T03:47:38.470495526Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.detail.txt.gz"
+    startTime: '2017-02-09T03:47:40.129933714Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz.tbi"
+    startTime: '2017-02-09T03:47:41.382271068Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/monitor_start.log"
+    startTime: '2017-02-09T03:47:42.435903794Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz"
+    startTime: '2017-02-09T03:47:43.642271517Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz"
+    startTime: '2017-02-09T03:47:45.347273542Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz"
+    startTime: '2017-02-09T03:47:46.453895593Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz.tbi"
+    startTime: '2017-02-09T03:47:47.742911868Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz"
+    startTime: '2017-02-09T03:47:49.634899078Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dstat_full.log"
+    startTime: '2017-02-09T03:47:51.995175748Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/pcawg_full-rc.txt"
+    startTime: '2017-02-09T03:47:53.100696548Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz.tbi"
+    startTime: '2017-02-09T03:47:54.143882600Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz.tbi"
+    startTime: '2017-02-09T03:47:56.459394708Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dRanger_intermediates.tar"
+    startTime: '2017-02-09T03:48:05.786279805Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dstat.log"
+    startTime: '2017-02-09T03:48:07.886740166Z'
+  - description: copied 1 file(s) to "gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz"
+    startTime: '2017-02-09T03:48:08.912044808Z'
+  - description: ok
+    startTime: '2017-02-09T03:48:10.353558560Z'
+  labels: {}
+  projectId: rebc-oct16
+  request:
+    '@type': type.googleapis.com/google.genomics.v1alpha2.RunPipelineRequest
+    ephemeralPipeline:
+      docker:
+        cmd: /bin/bash /cromwell_root/exec.sh
+        imageName: docker.io/chipstewart/pcawg_full:3
+      inputParameters:
+      - name: __extra_config_gcs_path
+      - localCopy:
+          disk: local-disk
+          path: fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_dranger.tar.gz
+        name: pcawg_full.refdata1-0
+      - localCopy:
+          disk: local-disk
+          path: exec.sh
+        name: exec
+      - localCopy:
+          disk: local-disk
+          path: fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-NB1-A-1-0-D-A49U-36.bam
+        name: pcawg_full.bam_normal-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_mutect_pcawg.tar.gz
+        name: pcawg_full.refdata3-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-TTP1-A-1-1-D-A49U-36.bai
+        name: pcawg_full.bam_tumor_index-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-TTP1-A-1-1-D-A49U-36.bam
+        name: pcawg_full.bam_tumor-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4520e968-446a-4f9f-85e2-8fcc901269dc/public_full4.tar.gz
+        name: pcawg_full.refdata4-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_mutect_hapmap.tar.gz
+        name: pcawg_full.refdata2-0
+      - localCopy:
+          disk: local-disk
+          path: fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-NB1-A-1-0-D-A49U-36.bai
+        name: pcawg_full.bam_normal_index-0
+      name: pcawg_full_workflow
+      outputParameters:
+      - localCopy:
+          disk: local-disk
+          path: pcawg_full-rc.txt
+        name: pcawg_full-rc.txt
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz
+        name: output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-dRanger.DATECODE.somatic.sv.detail.txt.gz
+        name: output_files/sample.broad-dRanger.DATECODE.somatic.sv.detail.txt.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz.tbi
+        name: output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz.tbi
+      - localCopy:
+          disk: local-disk
+          path: output_files/snowman_intermediates.tar
+        name: output_files/snowman_intermediates.tar
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.summary.usage.txt
+        name: output_files/sample.summary.usage.txt
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz
+        name: output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/monitor_start.log
+        name: output_files/monitor_start.log
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz.tbi
+        name: output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz.tbi
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz
+        name: output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz
+        name: output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz.tbi
+        name: output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz.tbi
+      - localCopy:
+          disk: local-disk
+          path: output_files/dstat_full.log
+        name: output_files/dstat_full.log
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz.tbi
+        name: output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz.tbi
+      - localCopy:
+          disk: local-disk
+          path: output_files/dRanger_intermediates.tar
+        name: output_files/dRanger_intermediates.tar
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz
+        name: output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz
+      - localCopy:
+          disk: local-disk
+          path: output_files/dstat.log
+        name: output_files/dstat.log
+      - localCopy:
+          disk: local-disk
+          path: output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz.tbi
+        name: output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz.tbi
+      projectId: rebc-oct16
+      resources:
+        bootDiskSizeGb: 10
+        disks:
+        - mountPoint: /cromwell_root
+          name: local-disk
+          sizeGb: 1500
+          type: PERSISTENT_HDD
+        minimumCpuCores: 8
+        minimumRamGb: 50
+        preemptible: true
+        zones:
+        - us-central1-b
+        - us-central1-c
+        - us-central1-f
+    pipelineArgs:
+      clientId: ''
+      inputs:
+        __extra_config_gcs_path: gs://cromwell-auth-rebc-oct16/ce70d8fa-cd5e-46b3-af66-f679bb5e271f_auth.json
+        exec: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/exec.sh
+        pcawg_full.bam_normal-0: gs://fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-NB1-A-1-0-D-A49U-36.bam
+        pcawg_full.bam_normal_index-0: gs://fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-NB1-A-1-0-D-A49U-36.bai
+        pcawg_full.bam_tumor-0: gs://fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-TTP1-A-1-1-D-A49U-36.bam
+        pcawg_full.bam_tumor_index-0: gs://fc-4520e968-446a-4f9f-85e2-8fcc901269dc/REBC-AC97-TTP1-A-1-1-D-A49U-36.bai
+        pcawg_full.refdata1-0: gs://fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_dranger.tar.gz
+        pcawg_full.refdata2-0: gs://fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_mutect_hapmap.tar.gz
+        pcawg_full.refdata3-0: gs://fc-4cd7fc16-6aa3-469c-8d05-1c9da33447b0/protected_mutect_pcawg.tar.gz
+        pcawg_full.refdata4-0: gs://fc-4520e968-446a-4f9f-85e2-8fcc901269dc/public_full4.tar.gz
+      labels: {}
+      logging:
+        gcsPath: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/pcawg_full.log
+      outputs:
+        output_files/dRanger_intermediates.tar: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dRanger_intermediates.tar
+        output_files/dstat.log: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dstat.log
+        output_files/dstat_full.log: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/dstat_full.log
+        output_files/monitor_start.log: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/monitor_start.log
+        output_files/sample.broad-dRanger.DATECODE.somatic.sv.detail.txt.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.detail.txt.gz
+        output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz
+        output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz.tbi: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-dRanger.DATECODE.somatic.sv.vcf.gz.tbi
+        output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz
+        output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz.tbi: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.indel.vcf.gz.tbi
+        output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz
+        output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz.tbi: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.germline.sv.vcf.gz.tbi
+        output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz
+        output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz.tbi: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.indel.vcf.gz.tbi
+        output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz
+        output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz.tbi: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.broad-snowman.DATECODE.somatic.sv.vcf.gz.tbi
+        output_files/sample.summary.usage.txt: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/sample.summary.usage.txt
+        output_files/snowman_intermediates.tar: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/output_files/snowman_intermediates.tar
+        pcawg_full-rc.txt: gs://fc-9c84e685-79f8-4d84-9e52-640943257a9b/00cbec28-f87b-4746-95ba-7eaa924aa379/pcawg_full_workflow/ce70d8fa-cd5e-46b3-af66-f679bb5e271f/call-pcawg_full/pcawg_full-rc.txt
+      projectId: rebc-oct16
+      resources:
+        bootDiskSizeGb: 10
+        disks:
+        - autoDelete: false
+          mountPoint: ''
+          name: local-disk
+          sizeGb: 1500
+          source: ''
+          type: PERSISTENT_HDD
+        minimumCpuCores: 8
+        minimumRamGb: 50
+        noAddress: false
+        preemptible: true
+        zones:
+        - us-central1-b
+        - us-central1-c
+        - us-central1-f
+      serviceAccount:
+        email: default
+        scopes:
+        - https://www.googleapis.com/auth/genomics
+        - https://www.googleapis.com/auth/compute
+  runtimeMetadata:
+    '@type': type.googleapis.com/google.genomics.v1alpha2.RuntimeMetadata
+    computeEngine:
+      diskNames:
+      - local-disk-17003305555023967129
+      instanceName: ggp-17003305555023967129
+      machineType: us-central1-b/n1-highmem-8
+      zone: us-central1-b
+  startTime: '2017-02-08T15:32:13Z'
+name: operations/EOLL6fKhKxiZ54T1iYr4--sBIP3g3tG1AioPcHJvZHVjdGlvblF1ZXVl

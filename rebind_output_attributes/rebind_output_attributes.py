@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 from common import *
 
+
 def fix_outputs(ws_namespace, ws_name, submission_id, expressions_override):
     # get the workspace
     workspace_request = firecloud_api.get_workspace(ws_namespace, ws_name)
     
     if workspace_request.status_code != 200:
-        fail("Unable to find workspace: %s/%s  at  %s --- %s" % (ws_namespace, ws_name, workspace_request.text))
+        fail("Unable to find workspace: %s/%s  at  %s --- %s" % (ws_namespace, ws_name, firecloud_api.PROD_API_ROOT, workspace_request.text))
 
     # get the submission
     submission_request = firecloud_api.get_submission(ws_namespace, ws_name, submission_id)
@@ -101,13 +102,12 @@ def main():
     setup()
 
     # The main argument parser
-    parser = ArgumentParser(description="Use an existing submission from a workspace to bind attributes back to the data model.  "
-                                        "This can be used to fix issues with binding that may have occurred, or to revert outputs "
-                                        "to a previous submission.  Additionally, an optional expression override can be used to "
-                                        "provide a new output expreession for a given output (e.g. to bind an output attribute that "
-                                        "was not originally bound.")
- 
-    parser.add_argument('-u', '--url', dest='fc_url', action='store', required=False, help='If set, this will override which api is used (default is https://api.firecloud.org/api)')
+    parser = DefaultArgsParser(description =
+                                "Use an existing submission from a workspace to bind attributes back to the data model.  "
+                                "This can be used to fix issues with binding that may have occurred, or to revert outputs "
+                                "to a previous submission.  Additionally, an optional expression override can be used to "
+                                "provide a new output expreession for a given output (e.g. to bind an output attribute that "
+                                "was not originally bound.")
 
     # Core application arguments
     parser.add_argument('-p', '--workspace_namespace', dest='ws_namespace', action='store', required=True, help='Workspace namespace')
@@ -118,9 +118,7 @@ def main():
     
     # Call the appropriate function for the given subcommand, passing in the parsed program arguments
     args = parser.parse_args()
-    
-    if args.fc_url:
-        firecloud_api.PROD_API_ROOT = args.fc_url
+
      
     print "Note -- this script has the following limitations:"
     print "        *  The output expressions must all be of the form 'this.attribute_name' - this does not handle " \

@@ -1,45 +1,86 @@
+# Google/auth
 from oauth2client.client import GoogleCredentials
 from oauth2client.client import AccessTokenRefreshError
 import httplib2
-
-from collections import defaultdict
-import re
-import multiprocessing as mp
-
-from argparse import ArgumentParser
 import googleapiclient.discovery
 import boto
+from google.cloud import bigquery
+# http://stackoverflow.com/questions/29099404/ssl-insecureplatform-error-when-using-requests-package
+import requests.packages.urllib3
+requests.packages.urllib3.disable_warnings()
+
+# general
+from argparse import ArgumentParser
+from collections import defaultdict
+import pandas
+import re
+import multiprocessing as mp
 import math
 import random
+import tempfile
 import os, sys, tempfile, subprocess
+import operator
+import signal
+import sys
+from time import sleep
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
+
+# data transformation
 import json
 import yaml
 import csv
 import xlrd
 from xlrd.sheet import ctype_text
-import re   
+
+# firecloud python bindings
 from firecloud import api as firecloud_api
-from google.cloud import bigquery
-import operator
 
-# http://stackoverflow.com/questions/29099404/ssl-insecureplatform-error-when-using-requests-package
-import requests.packages.urllib3
-requests.packages.urllib3.disable_warnings()
-
-import pprint 
-pp = pprint.PrettyPrinter(indent=4)
-
-import signal
-import sys
-from time import sleep
-
-import tempfile
 
 processes = []
+
 
 def print_fields(obj):
     for item in vars(obj).items():
         print item
+
+
+class DefaultArgsParser:
+    def __init__(self, description):
+        self.parser = ArgumentParser(description=description)
+
+        self.parser.add_argument('-u', '--url', dest='fc_url', action='store', required=False,
+                            help='If set, this will override which api is used (default is https://api.firecloud.org/api)')
+
+    def __getattr__(self, attr):
+        return self.parser.__getattribute__(attr)
+
+    def parse_args(self):
+        args = self.parser.parse_args()
+
+        if args.fc_url:
+            firecloud_api.PROD_API_ROOT = args.fc_url
+
+        return args
+
+
+def human_file_size_fmt(num, suffix='B'):
+    num_float = float(num)
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num_float) < 1024.0:
+            return "%3.1f%s%s" % (num_float, unit, suffix)
+        num_float /= 1024.0
+    return "%.1f%s%s" % (num_float, 'Yi', suffix)
+
+
+def create_service():
+    """Creates the service object for calling the Cloud Storage API."""
+    # Construct the service object for interacting with the Cloud Storage API -
+    # the 'storage' service, at version 'v1'.
+    # You can browse other available api services and versions here:
+    #     https://developers.google.com/api-client-library/python/apis/
+    return googleapiclient.discovery.build('storage', 'v1')
 
 
 def setup():
@@ -53,6 +94,19 @@ def get_workflow_metadata(namespace, name, submission_id, workflow_id):
         firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id)
 
     return requests.get(uri, headers=headers).json()
+
+
+def print_progress_bar(value, min, max, description=""):
+    percent = float(value-min) / (max-min)
+    width = 50
+
+    bar_width = int(math.ceil(width * percent))
+    print "\r[%s%s] %s/%s %s" % ("="*bar_width, " "*(width-bar_width), value, max, description),
+
+    if value >= max:
+        print "\n"
+
+    sys.stdout.flush()
 
 
 def signal_handler(signal, frame):
