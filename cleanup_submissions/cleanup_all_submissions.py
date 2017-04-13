@@ -246,6 +246,9 @@ def find_files_to_clean_in_old(ws_namespace, ws_name, ignored_file_keywords):
     print "-"*100
     print "%d Files to Delete: %s\n" % (len(files_not_referenced), human_file_size_fmt(total_size))
 
+    if len(files_not_referenced) == 0:
+        fail("There were no files to cleanup.")
+
     if prompt_to_continue("Are you sure you want to delete these files?"):
         for file_info in files_not_referenced:
             print "deleting %s...%s" % (file_info["name"], remove_object(bucketName, file_info["name"]))
