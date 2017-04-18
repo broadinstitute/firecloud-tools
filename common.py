@@ -64,6 +64,46 @@ class DefaultArgsParser:
 
         return args
 
+def list_to_dict(input_list, key_fcn, value_fcn=lambda item: item, transform_fcn=lambda item: item):
+    dicted_list = defaultdict(list)
+
+    for item in input_list:
+        key = key_fcn(item)
+        dicted_list[key].append(value_fcn(item))
+
+    return dicted_list
+
+def printj(*args):
+    print joins(*args)
+def joins(*args):
+    return ''.join(args)
+
+# take in a google bucket url for a file that was output by a submission and break it into its various parts (submission id, workflow id, etc)
+class SubmissionOutput:
+    def __init__(self, file_path):
+        # default to no value for all fields unless otherwise set
+        self.bucket_name = None
+        self.submission_id = None
+        self.workflow_name = None
+        self.workflow_id = None
+        self.task_name = None
+        self.task_file_path = None
+        self.file_path = file_path
+
+        try:
+            # gs://<group 1: bucket name>/<group 2: submission id>/<group 3: workflow name>/<group 4: workflow id>/<group 5: task name>/<group 6: task file path>
+            components = re.search(r"gs://([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/(.+)", file_path)
+
+            self.bucket_name = components.group(1)
+            self.submission_id = components.group(2)
+            self.workflow_name = components.group(3)
+            self.workflow_id = components.group(4)
+            self.task_name = components.group(5)
+            self.task_file_path = components.group(6)
+        except:
+            #print "Unable to make SubmissionOutput from URL:",file_path
+            pass
+
 
 def human_file_size_fmt(num, suffix='B'):
     num_float = float(num)

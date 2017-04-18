@@ -170,8 +170,68 @@ def get_metadata_parallel(ws_namespace, ws_name, submission_id, workflow_id):
     workflow_meta = get_workflow_metadata(ws_namespace, ws_name, submission_id, workflow_id)           
     
     return workflow_meta
-                
-def find_files_to_clean_in_old(ws_namespace, ws_name, ignored_file_keywords):
+
+
+def _print_files_list(files, num_tabs, file_path_to_entities):
+    total_size = 0
+    for f in sorted(files, key=lambda k: int(k['size'])):
+        file_size = int(f["size"])
+        total_size += file_size
+        submission_output = SubmissionOutput(f["full_path"])
+        file_path = submission_output.task_file_path if submission_output.task_file_path else submission_output.file_path
+        entities_referencing = file_path_to_entities[f["full_path"]]
+
+        printj("|",
+               "\t"*num_tabs,
+               human_file_size_fmt(file_size).ljust(15),
+               file_path,
+               joins(" -- referenced by: ",",".join(["%s (%s)" % (e["name"], e["entityType"]) for e in entities_referencing])) if len(entities_referencing) > 0 else "")
+    return total_size
+
+
+def print_files_list(files_list, type_message, file_path_to_entities):
+    print "\n\n"
+    printj("|","-"*100)
+    print "|","%s:" % type_message
+    printj("|", " -" * 50)
+
+
+    def get_submission_output(f): return SubmissionOutput(f["full_path"])
+    submission_id_to_files = list_to_dict(input_list=files_list,
+                                          key_fcn=lambda f: get_submission_output(f).submission_id)
+
+
+    total_size = 0
+    for (submission_id, files) in submission_id_to_files.iteritems():
+        if not submission_id:
+            print "|\n|\tFiles not part of submission:"
+            total_size += _print_files_list(files, 2, file_path_to_entities)
+        else:
+            print "|\n|\tSubmission Id:", submission_id
+            workflow_id_to_files = list_to_dict(files, lambda f: get_submission_output(f).workflow_id)
+
+            for (workflow_id, files) in workflow_id_to_files.iteritems():
+                if not workflow_id:
+                    print "|\t\tFiles not part of workflow:"
+                    total_size += _print_files_list(files, 3)
+                else:
+                    print "|\t\tWorkflow Id:", workflow_id
+
+                    task_name_to_files = list_to_dict(files, lambda f: get_submission_output(f).task_name)
+
+                    for (task_name, files) in task_name_to_files.iteritems():
+                        if not task_name:
+                            print "|\t\t\tFiles not part of task:"
+                            total_size += _print_files_list(files, 4, file_path_to_entities)
+                        else:
+                            print "|\t\t\t", task_name
+                            total_size += _print_files_list(files, 4, file_path_to_entities)
+    printj("|"," -" * 50)
+    print "| %d %s: %s" % (len(files_list), type_message, human_file_size_fmt(total_size))
+    printj("|", "-" * 100)
+
+
+def find_files_to_clean_in_old(ws_namespace, ws_name, cleanup_mode, ignored_file_keywords):
     workspace_request = firecloud_api.get_workspace(ws_namespace, ws_name)
     
     if workspace_request.status_code != 200:
@@ -189,6 +249,7 @@ def find_files_to_clean_in_old(ws_namespace, ws_name, ignored_file_keywords):
 
     print "Getting info on files in bucket..."
     bucket_objects = list_objects_in(bucketName, submission_ids)
+    file_path_to_entities = defaultdict(list)
 
     for entity_type in entity_types_json:
         entities_json = firecloud_api.get_entities(ws_namespace, ws_name, entity_type).json()
@@ -198,58 +259,54 @@ def find_files_to_clean_in_old(ws_namespace, ws_name, ignored_file_keywords):
             for attribute_value in entity_json["attributes"].values():
                 if re.match(r"gs://%s/.*" % bucketName, str(attribute_value)):
                     referenced_file_paths_in_workspace.append(attribute_value)
-
+                    file_path_to_entities[attribute_value].append(entity_json)
 
     files_in_data_model = []
     files_not_referenced = []
     files_ignored = []
+    workflow_ids_with_bound_files = set()
+    workflow_id_to_files = defaultdict(list)
 
     for (file_path, file_info) in bucket_objects.iteritems():
+        file_info["full_path"] = file_path
+
+        # gs://<group 1: bucket name>/<group 2: submission id>/<group 3: workflow name>/<group 4: workflow id>
+        submission_output = SubmissionOutput(file_path)
+        workflow_id = submission_output.workflow_id
+
+        workflow_id_to_files[workflow_id].append(file_info)
+
         file_name = re.findall(r"[^/]*$", file_path)[0]
         file_name_matches_ignored = any(re.match(ignored.replace("*", "[^/]*"), file_name) for ignored in ignored_file_keywords)
-        #
-        #     if unique_file_patterns[p][0]['name'] in workflow_outputs:
-        #         unique_file_patterns_to_keep[p] = unique_file_patterns[p]
-        #     elif any(re.match(ignored.replace("*", "[^/]*"), file_name) for ignored in ignored_file_keywords)
+
+        # if this file in the bucket is referenced in the workspace, then add it to the list of files in the data model
         if file_path in referenced_file_paths_in_workspace:
             files_in_data_model.append(file_info)
+        # otherwise if the file pattern is being ignored
         elif file_name_matches_ignored:
             files_ignored.append(file_info)
+            workflow_ids_with_bound_files.add(workflow_id)
+        # otherwise this file is not referenced and should be cleaned up
         else:
             files_not_referenced.append(file_info)
 
+    files_to_keep = [] + files_in_data_model
+    if cleanup_mode == "drop-workflow-if-none-bound":
+        for workflow_id in workflow_ids_with_bound_files:
+            files_to_keep.extend(workflow_id_to_files[workflow_id])
+        # get unique set of files to keep
+        files_to_keep = {v['name']: v for v in files_to_keep}.values()
 
+    print_files_list(files_to_keep, "Files to Keep", file_path_to_entities)
 
-    total_size = 0
-    print "Files Bound in Data Model:"
-    for f in sorted(files_in_data_model, key=lambda k: int(k['size'])):
-        file_size = int(f["size"])
-        total_size += file_size
-        print human_file_size_fmt(file_size).ljust(15), f["name"]
-    print "-" * 100
-    print "%d Files Bound in Data Model: %s\n" % (len(files_in_data_model), human_file_size_fmt(total_size))
-
-    total_size = 0
-    print "Files Ignored:"
-    for f in sorted(files_ignored, key=lambda k: int(k['size'])):
-        file_size = int(f["size"])
-        total_size += file_size
-        print human_file_size_fmt(file_size).ljust(15), f["name"]
-    print "-" * 100
-    print "%d Files Ignored: %s\n" % (len(files_ignored), human_file_size_fmt(total_size))
-
-    total_size = 0
-    for f in sorted(files_not_referenced, key=lambda k: int(k['size'])):
-        file_size = int(f["size"])
-        total_size += file_size
-        print human_file_size_fmt(file_size).ljust(15), f["name"]
-    print "-"*100
-    print "%d Files to Delete: %s\n" % (len(files_not_referenced), human_file_size_fmt(total_size))
+    print_files_list(files_ignored, "Files to Ignore", file_path_to_entities)
 
     if len(files_not_referenced) == 0:
-        fail("There were no files to cleanup.")
+        fail("There were no files to delete.")
 
-    if prompt_to_continue("Are you sure you want to delete these files?"):
+    print_files_list(files_not_referenced, "Files to Delete", file_path_to_entities)
+
+    if prompt_to_continue("NOTE: Any intermediate files that are deleted cannot be used later for call caching.  Are you sure you want to delete these files?"):
         for file_info in files_not_referenced:
             print "deleting %s...%s" % (file_info["name"], remove_object(bucketName, file_info["name"]))
     else:
@@ -475,13 +532,17 @@ def main():
     # Core application arguments
     parser.add_argument('-p', '--namespace', dest='ws_namespace', action='store', required=True, help='Workspace namespace')
     parser.add_argument('-n', '--name', dest='ws_name', action='store', required=True, help='Workspace name')
+    mode_choices = {"drop-workflow-if-none-bound":"Only drop un-ignored files in a workflow folder if NONE of them are bound",
+                    "drop-all-unbound":"Drop all un-ignored files that are not bound to the data model."}
+    parser.add_argument('-m', '--mode', dest='cleanup_mode', choices=mode_choices, action='store', required=True,
+                        help='Mode to determine how cleanup occurs.  Choices are as follows: %s' % ','.join(['["%s" -> %s]' % (key, value) for (key, value) in mode_choices.items()]))
     parser.add_argument('-i', '--ignore', dest='ignore_files', default=[], action='append', required=False, help='Filenames to ignore from the set of files to delete, e.g. "exec.sh".  Wildcards are allowed, e.g. "*stdout.log" will match "OncotatorTask-stdout.log" and "MutectTask-stdout.log"')
 
     
     # Call the appropriate function for the given subcommand, passing in the parsed program arguments
     args = parser.parse_args()
      
-    find_files_to_clean_in_old(args.ws_namespace, args.ws_name, args.ignore_files)
+    find_files_to_clean_in_old(args.ws_namespace, args.ws_name, args.cleanup_mode, args.ignore_files)
 
 if __name__ == "__main__":
     main()
