@@ -23,6 +23,7 @@ import operator
 import signal
 import sys
 from time import sleep
+from string import Template
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -39,6 +40,23 @@ from firecloud import api as firecloud_api
 
 
 processes = []
+
+
+class AtomicCounter(object):
+    def __init__(self, initval=0):
+        self.val = mp.Value('i', initval)
+        self.lock = mp.Lock()
+
+    def increment(self):
+        with self.lock:
+            self.val.value += 1
+
+    def value(self):
+        with self.lock:
+            return self.val.value
+
+    def reset(self, value):
+        self.val.value = value
 
 
 def print_fields(obj):
@@ -78,7 +96,20 @@ def printj(*args):
 def joins(*args):
     return ''.join(args)
 
-# take in a google bucket url for a file that was output by a submission and break it into its various parts (submission id, workflow id, etc)
+
+# simple wrapper to do substitution from variables local to caller function using the
+# ${some_variable_name} syntax in the string - T itself is a substituted string
+class T(str):
+    def __new__(cls, string):
+        import inspect
+        frame = inspect.currentframe()
+        try:
+            return super(T, cls).__new__(cls, Template(string).substitute(frame.f_back.f_locals))
+        finally:
+            del frame
+
+# take in a google bucket url for a file that was output by a submission and break it
+# into its various parts (submission id, workflow id, etc)
 class SubmissionOutput:
     def __init__(self, file_path):
         # default to no value for all fields unless otherwise set
@@ -128,20 +159,47 @@ def setup():
     print "Using Google client id:", credentials.client_id
 
 
-def get_workflow_metadata(namespace, name, submission_id, workflow_id):
+def get_workflow_metadata(namespace, name, submission_id, workflow_id, *include_keys):
     headers = firecloud_api._fiss_access_headers()
-    uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}".format(
-        firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id)
+
+    include_key_string = "includeKey=%s&" % ("%2C%20".join(list(include_keys))) if include_keys else ""
+    uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}?&{5}expandSubWorkflows=false".format(
+        firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id, include_key_string)
 
     return requests.get(uri, headers=headers).json()
 
+class ProgressBar:
+    def __init__(self, min, max, description="", num_tabs=0):
+        self.val = mp.Value('i', min)
+        self.lock = mp.Lock()
 
-def print_progress_bar(value, min, max, description=""):
+        self.min = min
+        self.max = max
+        self.description = description
+        self.num_tabs = num_tabs
+
+    def print_bar(self):
+        percent = float(self.val.value - self.min) / (self.max - self.min)
+        width = 50
+
+        bar_width = int(math.ceil(width * percent))
+        print "\r%s[%s%s] %s/%s %s" % (
+        "\t" * self.num_tabs, "=" * bar_width, " " * (width - bar_width), self.val.value, self.max, self.description),
+
+        if self.val.value >= max:
+            print "\n"
+
+        sys.stdout.flush()
+
+    def increment(self):
+        self.val.value += 1
+
+def print_progress_bar(value, min, max, description="", num_tabs=0):
     percent = float(value-min) / (max-min)
     width = 50
 
     bar_width = int(math.ceil(width * percent))
-    print "\r[%s%s] %s/%s %s" % ("="*bar_width, " "*(width-bar_width), value, max, description),
+    print "\r%s[%s%s] %s/%s %s" % ("\t"*num_tabs, "="*bar_width, " "*(width-bar_width), value, max, description),
 
     if value >= max:
         print "\n"
@@ -165,6 +223,51 @@ signal.signal(signal.SIGINT, signal_handler)
 def fail(message):
     print "\n\nExiting -- %s" % message
     sys.exit(1)
+
+
+# def make_fc_request(function, *args):
+#     request = firecloud_api
+
+def get_entity_by_page(namespace, name, entity_type, page, page_size):
+    headers = firecloud_api._fiss_access_headers()
+
+    uri = "{0}/workspaces/{1}/{2}/entityQuery/{3}?page={4}&pageSize={5}".format(
+        firecloud_api.PROD_API_ROOT, namespace, name, entity_type, page, page_size)
+
+    return requests.get(uri, headers=headers).json()
+
+
+def get_all_bound_file_paths(ws_namespace, ws_name):
+    request = firecloud_api.list_entity_types(ws_namespace, ws_name)
+    if request.status_code != 200:
+        fail(request.text)
+
+    entity_types_json = request.json()
+    file_path_to_entities = defaultdict(list)
+    referenced_file_paths_in_workspace = []
+
+    #
+    for entity_type in entity_types_json:
+        entity_count = entity_types_json[entity_type]["count"]
+
+        page_size = 1000
+        num_pages = int(math.ceil(float(entity_count) / page_size))
+        for i in range(1, num_pages+1):
+            for entity_json in get_entity_by_page(ws_namespace, ws_name, entity_type, i, page_size)["results"]:
+                for attribute_value in entity_json["attributes"].values():
+                        if re.match(r"gs://", str(attribute_value)):
+                            referenced_file_paths_in_workspace.append(attribute_value)
+                            file_path_to_entities[attribute_value].append(entity_json)
+    return file_path_to_entities
+
+
+def get_entity_by_page(namespace, name, entity_type, page, page_size):
+    headers = firecloud_api._fiss_access_headers()
+
+    uri = "{0}/workspaces/{1}/{2}/entityQuery/{3}?page={4}&pageSize={5}".format(
+        firecloud_api.PROD_API_ROOT, namespace, name, entity_type, page, page_size)
+
+    return requests.get(uri, headers=headers).json()
 
 
 def prompt_to_continue(msg):
