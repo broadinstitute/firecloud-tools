@@ -87,6 +87,8 @@ def get_workflow_metadata(namespace, name, submission_id, workflow_id, *include_
     uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}?&{5}expandSubWorkflows=false".format(
         firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id, include_key_string)
 
+    #print requests.get(uri, headers=headers).text
+
     return requests.get(uri, headers=headers).json()
 
 
@@ -148,6 +150,15 @@ def get_entity_by_page(namespace, name, entity_type, page, page_size):
         firecloud_api.PROD_API_ROOT, namespace, name, entity_type, page, page_size)
 
     return requests.get(uri, headers=headers).json()
+
+
+def get_workspace_storage_estimate(namespace, name):
+    headers = firecloud_api._fiss_access_headers()
+
+    uri = "{0}/workspaces/{1}/{2}/storageCostEstimate".format(
+        firecloud_api.PROD_API_ROOT, namespace, name)
+
+    return requests.get(uri, headers=headers)
 
 
 def prompt_to_continue(msg):
