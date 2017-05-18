@@ -25,4 +25,4 @@ fi
 export PYTHONPATH=./:$PYTHONPATH
 source ~/.firecloud-tools/venv/bin/activate
 
-python $@
+python -u $@

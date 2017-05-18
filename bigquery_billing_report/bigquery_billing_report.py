@@ -7,7 +7,7 @@ def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = 
     workspace_request = firecloud_api.get_workspace(ws_namespace, ws_name)
     
     if workspace_request.status_code != 200:
-        fail("Unable to find workspace: %s/%s  at  %s --- %s" % (ws_namespace, ws_name, workspace_request.text))
+        fail("Unable to find workspace: %s/%s --- %s" % (ws_namespace, ws_name, workspace_request.text))
         
     submissions_json = firecloud_api.list_submissions(ws_namespace, ws_name).json()
     
@@ -38,8 +38,45 @@ class CostRow():
         self.task_name = task_name
         self.call_name = call_name
 
-                      
+
+last_token = None
+token_request_count = 0
+
+
+def get_token():
+    global token_request_count
+    global last_token
+
+    if token_request_count % 100 == 0:
+        command = "gcloud auth print-access-token"
+        last_token = subprocess.check_output(command, shell=True).decode().strip()
+
+    token_request_count += 1
+
+    return last_token
+
+
+# this was added due to an issue with token expiring while running on a large submission.
+# Not sure why the standard Google library was not handling that properly.
+# TODO: generalize this or figure out why the Google library was not working as expected
+def _fiss_access_headers_local(headers=None):
+    """ Return request headers for fiss.
+        Retrieves an access token with the user's google crededentials, and
+        inserts FISS as the User-Agent.
+    Args:
+        headers (dict): Include additional headers as key-value pairs
+    """
+    credentials = GoogleCredentials.get_application_default()
+    access_token = get_token()
+    fiss_headers = {"Authorization" : "bearer " + access_token}
+    fiss_headers["User-Agent"] = firecloud_api.FISS_USER_AGENT
+    if headers:
+        fiss_headers.update(headers)
+    return fiss_headers
+
+
 def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMode):
+    firecloud_api._fiss_access_headers = _fiss_access_headers_local
     if len(workflow_dict) == 0:
         fail("No submissions or workflows matching the criteria were found.")
 
@@ -47,156 +84,182 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
     from google.cloud import bigquery
     
     subquery_template = "labels_value LIKE \"%%%s%%\""
-    workflows_subquery = " OR ".join([subquery_template % workflow_id for workflow_id in workflow_dict])
+    subquery_list = [subquery_template % workflow_id for workflow_id in workflow_dict]
     
     print "Gathering pricing data..."
 
     client = bigquery.Client(ws_namespace)
     dataset = client.dataset('billing_export')
-    for table in dataset.list_tables():
-        query = """
-              SELECT GROUP_CONCAT(labels.key) WITHIN RECORD AS labels_key, 
-                     GROUP_CONCAT(labels.value) WITHIN RECORD labels_value, 
-                     cost, 
-                     product, 
-                     resource_type
-              FROM %s.%s
-              WHERE project.id = '%s' 
-                      AND 
-                    labels.key IN ("cromwell-workflow-id", 
-                                   "cromwell-workflow-name", 
-                                   "cromwell-sub-workflow-name", 
-                                   "wdl-task-name", 
-                                   "wdl-call-alias")
-              HAVING 
-                 %s
-            """ % (dataset.name, table.name, ws_namespace, workflows_subquery)
 
+    matched_workflow_ids = set()
 
-        #print query
+    workflow_id_to_cost = defaultdict(list)
+    num_workflow_ids_per_query = 1000
+    total_row_count = 0
+    for i in xrange(0, len(subquery_list), num_workflow_ids_per_query):
+        query_index_start = i
+        query_index_end = i + num_workflow_ids_per_query
+        subquery_subset = subquery_list[query_index_start:query_index_end]
+        workflows_subquery = " OR ".join(subquery_subset)
 
-        query_results = client.run_sync_query(query)
+        for table in dataset.list_tables():
+            query = """
+                             SELECT GROUP_CONCAT(labels.key) WITHIN RECORD AS labels_key,
+                                    GROUP_CONCAT(labels.value) WITHIN RECORD labels_value,
+                                    cost,
+                                    product,
+                                    resource_type
+                             FROM %s.%s
+                             WHERE project.id = '%s'
+                                     AND
+                                   labels.key IN ("cromwell-workflow-id",
+                                                  "cromwell-workflow-name",
+                                                  "cromwell-sub-workflow-name",
+                                                  "wdl-task-name",
+                                                  "wdl-call-alias")
+                             HAVING %s
+                             # uncomment for quick testing:
+                             #LIMIT 1
+                           """ % (dataset.name, table.name, ws_namespace, workflows_subquery)
 
-        # Use standard SQL syntax for queries.
-        # See: https://cloud.google.com/bigquery/sql-reference/
-        #query_results.use_legacy_sql = False
+            query_results = client.run_sync_query(query)
 
-        query_results.run()
+            # Use standard SQL syntax for queries.
+            # See: https://cloud.google.com/bigquery/sql-reference/
+            #query_results.use_legacy_sql = False
 
-        print "Processing data..."
+            query_results.run()
 
-        page_token = None
+            print "Retrieving BigQuery cost information for workflows %d to %d of %d..." % (query_index_start, min(query_index_end, len(workflow_dict)), len(workflow_dict))
 
-        workflow_id_to_cost = defaultdict(list)
-        while True:
-            rows, total_rows, page_token = query_results.fetch_data(
-                max_results=1000,
-                page_token=page_token)
-            for row in rows:
-                labels = dict(zip(row[0].split(","), row[1].split(",")))
-                cost = row[2]
-                product = row[3]
-                resource_type = row[4]
+            page_token = None
 
-                workflow_id = labels["cromwell-workflow-id"].replace("cromwell-", "")
-                task_name = labels["wdl-task-name"]
+            while True:
+                rows, total_rows, page_token = query_results.fetch_data(
+                    max_results=1000,
+                    page_token=page_token)
+                for row in rows:
+                    total_row_count += 1
 
-                if "wdl-call-alias" not in labels:
-                    call_name = task_name
-                else:
-                    call_name = labels["wdl-call-alias"]
-                workflow_id_to_cost[workflow_id].append(CostRow(cost, product, resource_type, workflow_id, task_name, call_name) )
+                    labels = dict(zip(row[0].split(","), row[1].split(",")))
+                    cost = row[2]
+                    product = row[3]
+                    resource_type = row[4]
 
-            if not page_token:
-                break
+                    workflow_id = labels["cromwell-workflow-id"].replace("cromwell-", "")
+                    task_name = labels["wdl-task-name"]
 
-        submission_id_to_workflows = defaultdict(list)
-        for wf_id in workflow_id_to_cost:
-            workflow = workflow_dict[wf_id]
-            submission_id_to_workflows[workflow["submission_id"]].append(workflow)
-
-        for submission_id, workflows in submission_id_to_workflows.iteritems():
-            print ".--- Submission:", submission_id
-            submission_total = 0.0
-            submission_pd_cost = 0.0
-            submission_cpu_cost = 0.0
-            submission_other_cost = 0.0
-
-            for workflow in workflows:
-                workflow_json = workflow["workflow"]
-                wf_id = workflow_json["workflowId"]
-
-                workflow_metadata_json = get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id)
-                calls_lower_json = dict((k.split(".")[-1].lower(), v) for k, v in workflow_metadata_json["calls"].iteritems())
-                calls_lower_translated_json = {}
-                for calls_name, call_json in calls_lower_json.iteritems():
-                    # from the Cromwell documentation call names can be translated into a different format
-                    # under certain circumstances.  We will try translating it here and see if we get a match.
-                    # Rules:
-                    # Any capital letters are lowercased.
-                    # Any character which is not one of [a-z], [0-9] or - will be replaced with -.
-                    # If the start character does not match [a-z] then prefix with x--
-                    # If the final character does not match [a-z0-9] then suffix with --x
-                    # If the string is too long, only take the first 30 and last 30 characters and add --- between them.
-                    # TODO: this is not a complete implementation - however I requested that cromwell metadata includes label
-                    # TODO: so that this translation is not necessary
-                    cromwell_translated_callname = re.sub("[^a-z0-9\-]", "-", call_name.lower())
-                    calls_lower_translated_json[cromwell_translated_callname] = call_json
-
-                print "|\t.--- Workflow: %s (%s)" % (wf_id, workflow_json["status"])
-
-                call_name_to_cost = defaultdict(list)
-                for c in workflow_id_to_cost[wf_id]:
-                    call_name_to_cost[c.call_name].append(c)
-
-                total = 0.0
-                pd_cost = 0.0
-                cpu_cost = 0.0
-                other_cost = 0.0
-                for call_name in call_name_to_cost:
-                    call_pricing = call_name_to_cost[call_name]
-
-                    resource_type_to_pricing = defaultdict(int)
-                    for pricing in call_pricing:
-                        resource_type_to_pricing[pricing.resource_type] += pricing.cost
-
-                    if call_name in calls_lower_json:
-                        num_calls = len(calls_lower_json[call_name])
+                    if "wdl-call-alias" not in labels:
+                        call_name = task_name
                     else:
-                        if call_name in calls_lower_translated_json:
-                            num_calls = len(calls_lower_translated_json[call_name])
+                        call_name = labels["wdl-call-alias"]
+                    workflow_id_to_cost[workflow_id].append(CostRow(cost, product, resource_type, workflow_id, task_name, call_name) )
+                    if workflow_id in workflow_dict:
+                        matched_workflow_ids.add(workflow_id)
+
+                if not page_token:
+                    break
+
+    submission_id_to_workflows = defaultdict(list)
+    for wf_id in workflow_dict:
+        workflow = workflow_dict[wf_id]
+        submission_id_to_workflows[workflow["submission_id"]].append(workflow)
+
+    wf_count = 1
+    wf_total_count = len(workflow_dict)
+    for submission_id, workflows in submission_id_to_workflows.iteritems():
+        print ".--- Submission:", submission_id
+        submission_total = 0.0
+        submission_pd_cost = 0.0
+        submission_cpu_cost = 0.0
+        submission_other_cost = 0.0
+
+        workflow_ids_with_no_cost = set()
+        for workflow in workflows:
+            workflow_json = workflow["workflow"]
+            wf_id = workflow_json["workflowId"]
+
+            if wf_id not in workflow_id_to_cost:
+                workflow_ids_with_no_cost.add(wf_id)
+                continue
+
+            workflow_metadata_json = get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id)
+
+            #workflow_metadata_json = workflow_id_to_metadata_json[wf_id]
+            calls_lower_json = dict((k.split(".")[-1].lower(), v) for k, v in workflow_metadata_json["calls"].iteritems())
+            calls_lower_translated_json = {}
+            for calls_name, call_json in calls_lower_json.iteritems():
+                # from the Cromwell documentation call names can be translated into a different format
+                # under certain circumstances.  We will try translating it here and see if we get a match.
+                # Rules:
+                # Any capital letters are lowercased.
+                # Any character which is not one of [a-z], [0-9] or - will be replaced with -.
+                # If the start character does not match [a-z] then prefix with x--
+                # If the final character does not match [a-z0-9] then suffix with --x
+                # If the string is too long, only take the first 30 and last 30 characters and add --- between them.
+                # TODO: this is not a complete implementation - however I requested that cromwell metadata includes label
+                # TODO: so that this translation is not necessary
+                cromwell_translated_callname = re.sub("[^a-z0-9\-]", "-", call_name.lower())
+                calls_lower_translated_json[cromwell_translated_callname] = call_json
+
+            print "|\t.--- Workflow %d of %d: %s (%s)" % (wf_count, wf_total_count, wf_id, workflow_json["status"])
+            wf_count += 1
+
+            call_name_to_cost = defaultdict(list)
+            for c in workflow_id_to_cost[wf_id]:
+                call_name_to_cost[c.call_name].append(c)
+
+            total = 0.0
+            pd_cost = 0.0
+            cpu_cost = 0.0
+            other_cost = 0.0
+            for call_name in call_name_to_cost:
+                call_pricing = call_name_to_cost[call_name]
+
+                resource_type_to_pricing = defaultdict(int)
+                for pricing in call_pricing:
+                    resource_type_to_pricing[pricing.resource_type] += pricing.cost
+
+                if call_name in calls_lower_json:
+                    num_calls = len(calls_lower_json[call_name])
+                else:
+                    if call_name in calls_lower_translated_json:
+                        num_calls = len(calls_lower_translated_json[call_name])
+                    else:
+                        num_calls = 0
+
+                print "|\t|\t%-10s%s:" % ("(%dx)" % num_calls, call_name)
+
+                sorted_costs = sorted(resource_type_to_pricing, key=lambda rt: resource_type_to_pricing[rt], reverse=True)
+                for resource_type in sorted_costs:
+                    cost = resource_type_to_pricing[resource_type]
+                    if cost > 0:
+                        total += cost
+                        if "pd" in resource_type.lower():
+                            pd_cost += cost
+                        elif "cpu" in resource_type.lower():
+                            cpu_cost += cost
                         else:
-                            num_calls = 0
+                            other_cost += cost
 
-                    print "|\t|\t%-10s%s:" % ("(%dx)" % num_calls, call_name)
+                        print "|\t|\t\t\t%s%s" % (("$%f" % cost).ljust(15), resource_type)
+            print "|\t|    %s"%("-"*100)
+            print "|\t'--> Workflow Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n|" % (total, cpu_cost, pd_cost, other_cost)
 
-                    sorted_costs = sorted(resource_type_to_pricing, key=lambda rt: resource_type_to_pricing[rt], reverse=True)
-                    for resource_type in sorted_costs:
-                        cost = resource_type_to_pricing[resource_type]
-                        if cost > 0:
-                            total += cost
-                            if "pd" in resource_type.lower():
-                                pd_cost += cost
-                            elif "cpu" in resource_type.lower():
-                                cpu_cost += cost
-                            else:
-                                other_cost += cost
+            submission_total += total
+            submission_pd_cost += pd_cost
+            submission_cpu_cost += cpu_cost
+            submission_other_cost += other_cost
 
-                            print "|\t|\t\t\t%s%s" % (("$%f" % cost).ljust(15), resource_type)
-                print "|\t|    %s"%("-"*100)
-                print "|\t'--> Workflow Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n|" % (total, cpu_cost, pd_cost, other_cost)
-
-                submission_total += total
-                submission_pd_cost += pd_cost
-                submission_cpu_cost += cpu_cost
-                submission_other_cost += other_cost
-
-            if singleWorkflowMode:
-                print "'%s" % ("-" * 100)
-            else:
-                print "|    %s" % ("-" * 100)
-                print "'--> Submission Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n" % (submission_total, submission_cpu_cost, submission_pd_cost, submission_other_cost)
-
+        if singleWorkflowMode:
+            print "'%s" % ("-" * 100)
+        else:
+            print "|    %s" % ("-" * 100)
+            missing_workflows = len(workflow_ids_with_no_cost) > 0
+            caveat_text = (" (** for %d out of %d workflows)")%(len(workflow_ids_with_no_cost), wf_count) if missing_workflows else ""
+            print "'--> Submission Cost%s: $%f (cpu: $%f | disk: $%f | other: $%f)\n" % (caveat_text, submission_total, submission_cpu_cost, submission_pd_cost, submission_other_cost)
+            if missing_workflows:
+                print "     ** %d workflows without cost information, e.g. %s" % (len(workflow_ids_with_no_cost), next(iter(workflow_ids_with_no_cost)))
 
 def main():
     setup()
