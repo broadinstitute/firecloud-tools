@@ -13,7 +13,7 @@ def recursiveBucketCopy(p,w,dp,dw):
 	dBucket=getGSBucket(dp,dw)
 	print "sBucket is ",sBucket
 	print "dBucket is ",dBucket
-	bucket_cp_cmd="gsutil cp -r "+sBucket+"/* "+dBucket
+	bucket_cp_cmd="gsutil -m cp -r "+sBucket+"/* "+dBucket
 	print "The copy command to be run is "+bucket_cp_cmd
 	output=subprocess.check_output(bucket_cp_cmd, shell=True)
 	print "the output is \n*****\n",output,"\n******"
@@ -181,7 +181,6 @@ if __name__ == "__main__":
 			seen_clone=doesUserSeeWorkspace(args.DEST_PROJ,args.DEST_WS)
 			if(seen_clone):
 				print "The clone target already exists!"
-				recursiveBucketCopy(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS)
 			else:
 				cloneWS(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS)
 				seen_clone=doesUserSeeWorkspace(args.DEST_PROJ,args.DEST_WS)
