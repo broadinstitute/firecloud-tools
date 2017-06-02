@@ -171,8 +171,8 @@ if __name__ == "__main__":
 	parser = ArgumentParser(description="deep copy a workspace")
 	parser.add_argument('SOURCE_PROJ',type=str,help="source project")
 	parser.add_argument('SOURCE_WS',type=str,help="source workspace")
-	parser.add_argument('DEST_PROJ',type=str,help="source project")
-	parser.add_argument('DEST_WS',type=str,help="source workspace")
+	parser.add_argument('DEST_PROJ',type=str,help="destination project")
+	parser.add_argument('DEST_WS',type=str,help="destination workspace")
 	args = parser.parse_args()
 	if(args):
 		print "yes"
