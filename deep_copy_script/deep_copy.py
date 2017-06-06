@@ -105,6 +105,7 @@ def ws_annot_transfer_and_bucket_rename(p,w,dp,dw,access_token):
 		writer.close()
 		curl_cmd="curl -X POST --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' "
 		curl_cmd=curl_cmd+" --header 'Authorization: Bearer "+access_token+"'  -F attributes=@"+tmp_file_name_upload+" 'https://api.firecloud.org/api/workspaces/"+dp+"/"+dw+"/importAttributesTSV'"
+		subprocess.check_output(curl_cmd, shell=True)
 
 
 
