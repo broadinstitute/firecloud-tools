@@ -78,9 +78,9 @@ def getGSBucket(p,w):
 	return None
 
 
-def ws_annot_transfer_and_bucket_rename(p,w,dp,dw):
+def ws_annot_transfer_and_bucket_rename(p,w,dp,dw,access_token):
 	sBucket=getGSBucket(p,w)
-	dBucket=getGSBucket(dp,dw)	
+	dBucket=getGSBucket(dp,dw)
 	r = fapi.get_workspace(p,w,"https://api.firecloud.org/api")
 	fapi._check_response_code(r, 200)
 
@@ -89,16 +89,23 @@ def ws_annot_transfer_and_bucket_rename(p,w,dp,dw):
 	if len(workspace_attrs) == 0:
 			print "No workspace attributes defined !"
 	else:
+		tmp_file_name=tmp_file_name=p+"."+w+".wsattr.tsv"
+		tmp_file_name_upload=tmp_file_name+".mod.tsv"
+		print "Now downloading workspace attributes to "+tmp_file_name+" then modified attributes to "+tmp_file_name_upload+", then uploading "+tmp_file_name_upload+" to the destination."
+		curl_cmd="curl  -o "+tmp_file_name+"  -X GET --header \"Authorization: Bearer "+access_token+"\" "
+		curl_cmd=curl_cmd+" \"https://api.firecloud.org/api/workspaces/"+p+"/"+w+"/exportAttributesTSV\" "
+		subprocess.check_output(curl_cmd, shell=True)
+		reader=open(tmp_file_name,'r')
+		writer=open(tmp_file_name_upload,'w')
+		lines_read_this_entity=0
+		for line in reader:
+			lines_read_this_entity=lines_read_this_entity+1
+			line=line.replace(sBucket,dBucket)
+			writer.write(line)
+		writer.close()
+		curl_cmd="curl -X POST --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' "
+		curl_cmd=curl_cmd+" --header 'Authorization: Bearer "+access_token+"'  -F attributes=@"+tmp_file_name_upload+" 'https://api.firecloud.org/api/workspaces/"+dp+"/"+dw+"/importAttributesTSV'"
 
-		for k in sorted(workspace_attrs.keys()):
-			#print "key is ",k
-			if(not(k.startswith("library:"))):
-				print k + "\t" + str(workspace_attrs[k])
-				workspace_attrs[k]=workspace_attrs[k].replace(sBucket,dBucket)
-				print "Attempting update for it...."
-				update = fapi._attr_set(k,workspace_attrs[k])
-				r = fapi.update_workspace_attributes(dp,dw,[update], api_root="https://api.firecloud.org/api")
-				r = fapi._check_response_code(r, 200)
 
 
 
@@ -166,7 +173,7 @@ if __name__ == "__main__":
 					print "Successfully cloned!"
 					accessToken=getAccessToken()
 					entity_transfer_and_bucket_rename(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS,accessToken)
-					ws_annot_transfer_and_bucket_rename(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS)
+					ws_annot_transfer_and_bucket_rename(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS,accessToken)
 					recursiveBucketCopy(args.SOURCE_PROJ,args.SOURCE_WS,args.DEST_PROJ,args.DEST_WS)
 				else:
 					print "Error in cloning, could not find clone after cloning operation!"
