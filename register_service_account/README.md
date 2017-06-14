@@ -3,6 +3,6 @@ This script will register a service account so that it can be used in FireCloud.
 
 In order to run this script you will need to download the credentials JSON file for your service account.  See https://cloud.google.com/storage/docs/authentication#generating-a-private-key for information on creating a service account credentials JSON file.
 
-Usage:
+Usage (from the main directory where run.sh resides):
 
-```/run.sh register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account>```
+```./run.sh register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account>```
