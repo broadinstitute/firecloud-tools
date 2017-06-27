@@ -34,11 +34,40 @@ import yaml
 import csv
 import xlrd
 from xlrd.sheet import ctype_text
+import dateutil.parser
 
 # firecloud python bindings
 from firecloud import api as firecloud_api
 
 processes = []
+
+
+class ProgressBar:
+    def __init__(self, min, max, description="", num_tabs=0):
+        self.val = mp.Value('i', min)
+        self.lock = mp.Lock()
+
+        self.min = min
+        self.max = max
+        self.description = description
+        self.num_tabs = num_tabs
+
+    def print_bar(self):
+        percent = float(self.val.value - self.min) / (self.max - self.min)
+        width = 50
+
+        bar_width = int(math.ceil(width * percent))
+        print "\r%s[%s%s] %s/%s %s" % (
+            "\t" * self.num_tabs, "=" * bar_width, " " * (width - bar_width), self.val.value, self.max,
+            self.description),
+
+        if self.val.value >= max:
+            print "\n"
+
+        sys.stdout.flush()
+
+    def increment(self):
+        self.val.value += 1
 
 
 def print_fields(obj):
@@ -87,7 +116,6 @@ def get_workflow_metadata(namespace, name, submission_id, workflow_id, *include_
     uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}?&{5}expandSubWorkflows=false".format(
         firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id, include_key_string)
 
-    #print requests.get(uri, headers=headers).text
 
     return requests.get(uri, headers=headers).json()
 

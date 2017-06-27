@@ -2,7 +2,7 @@
 from common import *
 
 
-def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = None):
+def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = None, show_all_calls=False):
     print "Retrieving submissions in workspace..."       
     workspace_request = firecloud_api.get_workspace(ws_namespace, ws_name)
     
@@ -12,6 +12,7 @@ def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = 
     submissions_json = firecloud_api.list_submissions(ws_namespace, ws_name).json()
     
     workflow_dict = {}
+    submission_dict = {}
     for submission_json in submissions_json:
         sub_id = submission_json["submissionId"]
         
@@ -19,14 +20,16 @@ def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = 
             continue;
         
         sub_details_json = firecloud_api.get_submission(ws_namespace, ws_name, sub_id).json()
-        for wf in sub_details_json["workflows"]:
+        submission_dict[sub_id] = sub_details_json
+
+        for wf in (wf for wf in sub_details_json["workflows"] if "workflowId" in wf and "workflows" in sub_details_json):
             wf_id = wf["workflowId"]
             if query_workflow_id and wf_id not in query_workflow_id:
                 continue;
 
             workflow_dict[wf_id] = {"submission_id":sub_id, "workflow":wf}
 
-    get_workflow_pricing(ws_namespace, ws_name, workflow_dict, query_workflow_id!=None and len(query_workflow_id) > 0)
+    get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, query_workflow_id!=None and len(query_workflow_id) > 0, show_all_calls)
 
 
 class CostRow():
@@ -75,7 +78,7 @@ def _fiss_access_headers_local(headers=None):
     return fiss_headers
 
 
-def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMode):
+def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, singleWorkflowMode, show_all_calls):
     firecloud_api._fiss_access_headers = _fiss_access_headers_local
     if len(workflow_dict) == 0:
         fail("No submissions or workflows matching the criteria were found.")
@@ -168,7 +171,13 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
     wf_count = 1
     wf_total_count = len(workflow_dict)
     for submission_id, workflows in submission_id_to_workflows.iteritems():
-        print ".--- Submission:", submission_id
+        if len(workflows) == 0:
+            print "No Workflows."
+            continue;
+
+        submitter = submission_dict[submission_id]["submitter"]
+
+        print ".--- Submission: %s (submitted by %s)" % (submission_id, submitter)
         submission_total = 0.0
         submission_pd_cost = 0.0
         submission_cpu_cost = 0.0
@@ -183,24 +192,37 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
                 workflow_ids_with_no_cost.add(wf_id)
                 continue
 
+
             workflow_metadata_json = get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id)
+
+            if "calls" not in workflow_metadata_json:
+                #print ws_namespace, ws_name, submission_id, wf_id, workflow_metadata_json
+                continue
+            # print json.dumps(workflow_metadata_json, indent=4, sort_keys=True)
+            print workflow_metadata_json["calls"].keys()
+
 
             #workflow_metadata_json = workflow_id_to_metadata_json[wf_id]
             calls_lower_json = dict((k.split(".")[-1].lower(), v) for k, v in workflow_metadata_json["calls"].iteritems())
-            calls_lower_translated_json = {}
-            for calls_name, call_json in calls_lower_json.iteritems():
-                # from the Cromwell documentation call names can be translated into a different format
-                # under certain circumstances.  We will try translating it here and see if we get a match.
-                # Rules:
-                # Any capital letters are lowercased.
-                # Any character which is not one of [a-z], [0-9] or - will be replaced with -.
-                # If the start character does not match [a-z] then prefix with x--
-                # If the final character does not match [a-z0-9] then suffix with --x
-                # If the string is too long, only take the first 30 and last 30 characters and add --- between them.
-                # TODO: this is not a complete implementation - however I requested that cromwell metadata includes label
-                # TODO: so that this translation is not necessary
-                cromwell_translated_callname = re.sub("[^a-z0-9\-]", "-", call_name.lower())
-                calls_lower_translated_json[cromwell_translated_callname] = call_json
+
+            if len(calls_lower_json) == 0:
+                print "\tNo Calls."
+            else:
+                calls_lower_translated_json = {}
+                for calls_name, call_json in calls_lower_json.iteritems():
+                    # from the Cromwell documentation call names can be translated into a different format
+                    # under certain circumstances.  We will try translating it here and see if we get a match.
+                    # Rules:
+                    # Any capital letters are lowercased.
+                    # Any character which is not one of [a-z], [0-9] or - will be replaced with -.
+                    # If the start character does not match [a-z] then prefix with x--
+                    # If the final character does not match [a-z0-9] then suffix with --x
+                    # If the string is too long, only take the first 30 and last 30 characters and add --- between them.
+                    # TODO: this is not a complete implementation - however I requested that cromwell metadata includes label
+                    # TODO: so that this translation is not necessary
+                    cromwell_translated_callname = re.sub("[^a-z0-9\-]", "-", call_name.lower())
+                    print call_name, cromwell_translated_callname
+                    calls_lower_translated_json[cromwell_translated_callname] = call_json
 
             print "|\t.--- Workflow %d of %d: %s (%s)" % (wf_count, wf_total_count, wf_id, workflow_json["status"])
             wf_count += 1
@@ -214,26 +236,42 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
             cpu_cost = 0.0
             other_cost = 0.0
             for call_name in call_name_to_cost:
+                print call_name, calls_lower_json.keys(), calls_lower_translated_json.keys()
+
+                calls = calls_lower_json[call_name] if call_name in calls_lower_json else calls_lower_translated_json[call_name]
+
                 call_pricing = call_name_to_cost[call_name]
 
                 resource_type_to_pricing = defaultdict(int)
                 for pricing in call_pricing:
-                    resource_type_to_pricing[pricing.resource_type] += pricing.cost
+                    if pricing.cost > 0:
+                        resource_type_to_pricing[pricing.resource_type] += pricing.cost
 
                 if call_name in calls_lower_json:
-                    num_calls = len(calls_lower_json[call_name])
+                    num_calls = len(calls)
                 else:
                     if call_name in calls_lower_translated_json:
                         num_calls = len(calls_lower_translated_json[call_name])
                     else:
                         num_calls = 0
-
                 print "|\t|\t%-10s%s:" % ("(%dx)" % num_calls, call_name)
 
+                if show_all_calls:
+                    for call in sorted(calls, key=lambda call: call["attempt"]):
+                        start = dateutil.parser.parse(call["start"])
+                        end = dateutil.parser.parse(call["end"])
+                        preempted = "[preempted]" if call["preemptible"] == True and call["executionStatus"] == "RetryableFailure" else ""
+                        print "|\t|\t             * Attempt #%d: start: %s - end: %s (elapsed: %s) %s" % (call["attempt"], start, end, end-start, preempted)
+
                 sorted_costs = sorted(resource_type_to_pricing, key=lambda rt: resource_type_to_pricing[rt], reverse=True)
-                for resource_type in sorted_costs:
-                    cost = resource_type_to_pricing[resource_type]
-                    if cost > 0:
+
+                if len(sorted_costs) > 0:
+                    for resource_type in sorted_costs:
+                        cost = resource_type_to_pricing[resource_type]
+
+                        if cost == 0:
+                            continue
+
                         total += cost
                         if "pd" in resource_type.lower():
                             pd_cost += cost
@@ -243,6 +281,10 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
                             other_cost += cost
 
                         print "|\t|\t\t\t%s%s" % (("$%f" % cost).ljust(15), resource_type)
+                else:
+                    workflow_ids_with_no_cost.add(wf_id)
+                    print "|\t|\t\t\t(missing cost information)"
+
             print "|\t|    %s"%("-"*100)
             print "|\t'--> Workflow Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n|" % (total, cpu_cost, pd_cost, other_cost)
 
@@ -256,7 +298,7 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, singleWorkflowMod
         else:
             print "|    %s" % ("-" * 100)
             missing_workflows = len(workflow_ids_with_no_cost) > 0
-            caveat_text = (" (** for %d out of %d workflows)")%(len(workflow_ids_with_no_cost), wf_count) if missing_workflows else ""
+            caveat_text = (" (** for %d out of %d workflows)")%(wf_count-len(workflow_ids_with_no_cost), wf_count) if missing_workflows else ""
             print "'--> Submission Cost%s: $%f (cpu: $%f | disk: $%f | other: $%f)\n" % (caveat_text, submission_total, submission_cpu_cost, submission_pd_cost, submission_other_cost)
             if missing_workflows:
                 print "     ** %d workflows without cost information, e.g. %s" % (len(workflow_ids_with_no_cost), next(iter(workflow_ids_with_no_cost)))
@@ -274,13 +316,16 @@ def main():
     parser.add_argument('-s', '--subid', dest='submission_id', action='store', required=False, help='Optional Submission ID to limit the pricing breakdown to.  If not provided pricing for all submissions in this workspace will be reported.')
     parser.add_argument('-w', '--wfid', dest='workflow_id', default=[], action='append', required=False, help='Optional Workflow ID to limit the pricing breakdown to.  Note that this requires a submission id to be passed as well."')
 
+    parser.add_argument('-c', '--calls', dest='show_all_calls', action='store_true', required=False, help='Expand information about each call.')
+
     args = parser.parse_args()
 
     if args.workflow_id and not args.submission_id:
         fail("Submission ID must also be provided when querying for a Workflow ID")
 
     print "Note that this script expects the billing export table to be named 'billing_export'.  "
-    get_pricing(args.ws_namespace, args.ws_name, args.submission_id, args.workflow_id)
+
+    get_pricing(args.ws_namespace, args.ws_name, args.submission_id, args.workflow_id, args.show_all_calls)
 
 
 if __name__ == "__main__":
