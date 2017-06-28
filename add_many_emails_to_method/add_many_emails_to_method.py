@@ -15,13 +15,14 @@ def main():
     parser.add_argument('-t', '--type', dest='type', action='store', required=True, choices=['method', 'config'], help='Type of entity to modify: either method or config')
     parser.add_argument('-r', '--access_level', dest='access_level', action='store', choices=['OWNER', 'READER'], required=True, help='Access level to give each user in the file.')
     parser.add_argument('-f', '--input_file', dest='input_file', action='store', required=True, help='Input file containing one email address per line.')
-
+	parser.add_argument('-fcu','--firecloud_user', dest='firecloud_user', action='store', required=True, help='Your firecloud user id.')
     args = parser.parse_args()
 
     permissions = []
     with open(args.input_file, "r") as emailFile:
         for e in emailFile:
-            permissions.append({"user":"%s"%e.replace("\n", ""), "role":"%s"%args.access_level})
+            if e.replace("\n","")!=args.firecloud_user:
+               permissions.append({"user":"%s"%e.replace("\n", ""), "role":"%s"%args.access_level})
 
         if args.type == 'method':
             existing = firecloud_api.get_repository_method_acl(args.namespace, args.name, args.snapshot_id).json()
