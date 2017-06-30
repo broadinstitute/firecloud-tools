@@ -11,3 +11,6 @@ __pycache__/
 env/
 venv/
 ENV/
+
+# IntelliJ
+**/.idea/
