@@ -38,6 +38,8 @@ import dateutil.parser
 
 # firecloud python bindings
 from firecloud import api as firecloud_api
+from firecloud.fccore import __fcconfig as fcconfig
+
 
 processes = []
 
@@ -89,8 +91,7 @@ class DefaultArgsParser:
         args = self.parser.parse_args()
 
         if args.fc_url:
-            firecloud_api.PROD_API_ROOT = args.fc_url
-
+            set_fc_url(args.fc_url)
         return args
 
 
@@ -104,18 +105,42 @@ def list_to_dict(input_list, key_fcn, value_fcn=lambda item: item, transform_fcn
     return dicted_list
 
 
-def setup():
+def get_access_token():
+    return GoogleCredentials.get_application_default().get_access_token().access_token
+
+# only needed until firecloud python library in pypi supports service accounts
+def _fiss_access_headers_local(headers=None):
+    """ Return request headers for fiss.
+        Retrieves an access token with the user's google crededentials, and
+        inserts FISS as the User-Agent.
+    Args:
+        headers (dict): Include additional headers as key-value pairs
+    """
     credentials = GoogleCredentials.get_application_default()
-    print "Using Google client id:", credentials.client_id
+    credentials = credentials.create_scoped(['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'])
+    access_token = credentials.get_access_token().access_token
+    fiss_headers = {"Authorization" : "bearer " + access_token}
+    fiss_headers["User-Agent"] = firecloud_api.FISS_USER_AGENT
+    if headers:
+        fiss_headers.update(headers)
+    return fiss_headers
+
+
+def setup():
+    firecloud_api._fiss_access_headers = _fiss_access_headers_local
+    registration_info = requests.get("https://api.firecloud.org/register", headers=firecloud_api._fiss_access_headers())
+    if registration_info.status_code == 404:
+        fail("This account is not registered with FireCloud.")
+
+    print "Using credentials for firecloud account:", registration_info.json()["userInfo"]["userEmail"]
 
 
 def get_workflow_metadata(namespace, name, submission_id, workflow_id, *include_keys):
     headers = firecloud_api._fiss_access_headers()
 
     include_key_string = "includeKey=%s&" % ("%2C%20".join(list(include_keys))) if include_keys else ""
-    uri = "{0}/workspaces/{1}/{2}/submissions/{3}/workflows/{4}?&{5}expandSubWorkflows=false".format(
-        firecloud_api.PROD_API_ROOT, namespace, name, submission_id, workflow_id, include_key_string)
-
+    uri = "{0}workspaces/{1}/{2}/submissions/{3}/workflows/{4}?&{5}expandSubWorkflows=false".format(
+        get_fc_url(), namespace, name, submission_id, workflow_id, include_key_string)
 
     return requests.get(uri, headers=headers).json()
 
@@ -142,7 +167,7 @@ def get_entity_by_page(namespace, name, entity_type, page, page_size):
     headers = firecloud_api._fiss_access_headers()
 
     uri = "{0}/workspaces/{1}/{2}/entityQuery/{3}?page={4}&pageSize={5}".format(
-        firecloud_api.PROD_API_ROOT, namespace, name, entity_type, page, page_size)
+        get_fc_url(), namespace, name, entity_type, page, page_size)
 
     return requests.get(uri, headers=headers).json()
 
@@ -171,11 +196,19 @@ def get_all_bound_file_paths(ws_namespace, ws_name):
     return attribute_name_for_url_to_entity_json
 
 
+def set_fc_url(url):
+    fcconfig.root_url = url
+
+
+def get_fc_url():
+    return fcconfig.root_url
+
+
 def get_entity_by_page(namespace, name, entity_type, page, page_size):
     headers = firecloud_api._fiss_access_headers()
 
-    uri = "{0}/workspaces/{1}/{2}/entityQuery/{3}?page={4}&pageSize={5}".format(
-        firecloud_api.PROD_API_ROOT, namespace, name, entity_type, page, page_size)
+    uri = "{0}workspaces/{1}/{2}/entityQuery/{3}?page={4}&pageSize={5}".format(
+        get_fc_url(), namespace, name, entity_type, page, page_size)
 
     return requests.get(uri, headers=headers).json()
 
@@ -184,7 +217,7 @@ def get_workspace_storage_estimate(namespace, name):
     headers = firecloud_api._fiss_access_headers()
 
     uri = "{0}/workspaces/{1}/{2}/storageCostEstimate".format(
-        firecloud_api.PROD_API_ROOT, namespace, name)
+        get_fc_url(), namespace, name)
 
     return requests.get(uri, headers=headers)
 

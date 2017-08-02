@@ -2,7 +2,7 @@
 from common import *
 
 
-def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = None, show_all_calls=False):
+def get_pricing(ws_namespace, ws_name, query_sub_id, query_workflow_id, show_all_calls, dataset_project_name, dataset_name):
     print "Retrieving submissions in workspace..."       
     workspace_request = firecloud_api.get_workspace(ws_namespace, ws_name)
     
@@ -29,7 +29,7 @@ def get_pricing(ws_namespace, ws_name, query_sub_id = None, query_workflow_id = 
 
             workflow_dict[wf_id] = {"submission_id":sub_id, "workflow":wf}
 
-    get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, query_workflow_id!=None and len(query_workflow_id) > 0, show_all_calls)
+    get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, query_workflow_id!=None and len(query_workflow_id) > 0, show_all_calls, dataset_project_name, dataset_name)
 
 
 class CostRow():
@@ -78,7 +78,7 @@ def _fiss_access_headers_local(headers=None):
     return fiss_headers
 
 
-def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, singleWorkflowMode, show_all_calls):
+def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, singleWorkflowMode, show_all_calls, dataset_project_name, dataset_name):
     firecloud_api._fiss_access_headers = _fiss_access_headers_local
     if len(workflow_dict) == 0:
         fail("No submissions or workflows matching the criteria were found.")
@@ -91,8 +91,8 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, 
     
     print "Gathering pricing data..."
 
-    client = bigquery.Client(ws_namespace)
-    dataset = client.dataset('billing_export')
+    client = bigquery.Client(dataset_project_name)
+    dataset = client.dataset(dataset_name)
 
     matched_workflow_ids = set()
 
@@ -124,7 +124,7 @@ def get_workflow_pricing(ws_namespace, ws_name, workflow_dict, submission_dict, 
                              # uncomment for quick testing:
                              #LIMIT 1
                            """ % (dataset.name, table.name, ws_namespace, workflows_subquery)
-
+            print query
             query_results = client.run_sync_query(query)
 
             # Use standard SQL syntax for queries.
@@ -318,14 +318,20 @@ def main():
 
     parser.add_argument('-c', '--calls', dest='show_all_calls', action='store_true', required=False, help='Expand information about each call.')
 
+    parser.add_argument('-dp', '--dataset_project', dest='dataset_project', action='store', required=False, help='Optional project where dataset is stored - defaults to the workspace project.')
+    parser.add_argument('-dn', '--dataset_name', dest='dataset_name', action='store', required=False, help='Optional dataset name where billing data is stored - defaults to billing_export.')
+
     args = parser.parse_args()
 
     if args.workflow_id and not args.submission_id:
         fail("Submission ID must also be provided when querying for a Workflow ID")
 
-    print "Note that this script expects the billing export table to be named 'billing_export'.  "
+    if not args.dataset_name:
+        print "Note that this script expects the billing export table to be named 'billing_export'.  "
 
-    get_pricing(args.ws_namespace, args.ws_name, args.submission_id, args.workflow_id, args.show_all_calls)
+    get_pricing(args.ws_namespace, args.ws_name, args.submission_id, args.workflow_id, args.show_all_calls,
+                args.dataset_project if args.dataset_project else args.ws_namespace,
+                args.dataset_name if args.dataset_name else 'billing_export')
 
 
 if __name__ == "__main__":
