@@ -129,7 +129,7 @@ def _fiss_access_headers_local(headers=None):
 def setup():
     firecloud_api._fiss_access_headers = _fiss_access_headers_local
     registration_info = requests.get("https://api.firecloud.org/register", headers=firecloud_api._fiss_access_headers())
-    if registration_info.status_code == 404:
+    if registration_info.status_code != 200:
         fail("This account is not registered with FireCloud.")
 
     print "Using credentials for firecloud account:", registration_info.json()["userInfo"]["userEmail"]

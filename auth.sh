@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 if [[ $1 =~ \.json$ ]]; then
     echo "Authorizing service account using json file"
     gcloud auth activate-service-account --key-file=$1
