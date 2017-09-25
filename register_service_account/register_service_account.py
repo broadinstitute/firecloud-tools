@@ -3,8 +3,6 @@ from common import *
 
 
 def main():
-    setup()
-
     # The main argument parser
     parser = DefaultArgsParser(description="Register a service account for use in FireCloud.")
 
