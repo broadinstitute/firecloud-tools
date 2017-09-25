@@ -1,0 +1,13 @@
+Using credentials for firecloud account: abaumann@broadinstitute.org
+Retrieving submissions in workspace...
+
+
+Exiting -- Unable to find workspace: broad-ccdg-dev/BRAVE --- {
+  "statusCode": 404,
+  "source": "rawls",
+  "timestamp": 1504186590047,
+  "causes": [],
+  "stackTrace": [],
+  "message": "broad-ccdg-dev/BRAVE does not exist"
+}
+

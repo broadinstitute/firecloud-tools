@@ -1,0 +1,294 @@
+Using credentials for firecloud account: abaumann@broadinstitute.org
+Retrieving submissions in workspace...
+Gathering pricing data...
+Retrieving BigQuery cost information for workflows 0 to 313 of 313...
+.--- Submission: 9e8d95ef-1f35-4975-955c-98d3bfd7e816 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 6ece08f4-a643-4a5e-802e-d44fa78714b2
+.--- Submission: 6689e2c0-d503-41bc-84c4-c9e9f53e3b58 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 69445b3a-9e8e-422f-bfd2-787bea6c9899
+.--- Submission: 9eb200cd-30cd-4b3f-b398-4208f2a1c6bc (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 46268f10-1e10-447d-a614-d992d2267824
+.--- Submission: ebd2f68b-50f8-44f6-84dd-f363902d54a2 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. dc1a1b5b-45ea-45c3-85f1-f665c7d29611
+.--- Submission: 6a505200-2fa7-41ef-9009-7e36fc9e8897 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 170c1f3b-be48-4a9a-b1de-692916d8cdf1
+.--- Submission: e015c718-2954-45e4-b2a7-bd9dc6972648 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 63b4bfbd-6085-4220-bf68-f6bfa15b39ce
+.--- Submission: e6ee2db4-3327-48e0-bdfc-91a9050659b2 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. a16200fd-ce34-42da-84a1-fd127938b573
+.--- Submission: 44c93c52-4213-4961-a18a-4f22f6123646 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 1f17bc93-7d96-4657-8e19-95b43b59b2a7
+.--- Submission: 726ce39b-c514-4df8-9c03-ef2a81de73d3 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 8fbbe186-1416-4223-9253-10a9f8ffe612
+.--- Submission: a10549e9-748a-4d96-8c72-9d5a9ad700b9 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. ae4d2e81-7fe8-4f2c-90c2-85477a419350
+.--- Submission: 3b0c0c8b-de82-4c8f-8055-927737f37229 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 95c0c82d-7724-4fb7-a483-c9a1f12fe0f6
+.--- Submission: b3a925e2-e3c8-46fb-b5d4-995ff99ba00e (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 690dd2b8-9190-41c1-92e3-abd7334fe700
+.--- Submission: c66fd6c2-2fcc-4abb-9778-445bffb0ca9e (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. bc8fefb8-780f-488a-beb8-8a0765ec470a
+.--- Submission: 2ed05781-6705-4a76-9d75-1ff4eb65329d (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 477f7d96-6ea4-4ae0-9b72-30e56990be3a
+.--- Submission: 01188a39-f573-47bb-87c5-98585410b7bc (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. d5c40641-191a-4bcc-96c4-1ada07ec24f0
+.--- Submission: 9807fe34-8088-40f2-b678-0cd10a29ac60 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 118a652f-7121-4e4f-92be-4168204d5dd2
+.--- Submission: 01f4d35e-e04c-4982-9f7d-6df26edd0da5 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. be8ba3e2-6c9a-45d9-b74b-c1ac8c4a66ed
+.--- Submission: bbadc684-e7ad-439f-8c53-4a46ed4a5025 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 773913f4-8d29-474a-aca6-1835090997bf
+.--- Submission: 607ba039-7c49-4034-bfc6-1bee1b352ce3 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. dd2cf589-5749-460b-974e-559acdbbb68b
+.--- Submission: 46c123e5-d72c-48de-97bf-46318e71cbd7 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for -47 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 48 workflows without cost information, e.g. 15740a91-108a-44c8-8499-154ca15379e2
+.--- Submission: 97002137-7006-47a6-90c8-faf471f0b2d1 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 7319d4ff-d705-4afb-b9ca-e505ff0e742e
+.--- Submission: 33184f9d-5b2f-47eb-9295-332ac4277c83 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. d4956cb5-bfef-4e78-adf0-3f0823797f51
+.--- Submission: 38d8443e-5f24-4a0b-bf8b-809a9a6815a7 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 4180f5eb-4281-4c2f-b1e9-40d00dc7eb5c
+.--- Submission: 1616d8c7-b0d8-457f-a998-c93ff0fc5d5e (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 957f817d-86d8-4f45-b0d1-3666b15879d8
+.--- Submission: 28fe8016-8f6f-4fb1-b06f-b20b1e9bd05e (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 1f4d88ce-f00d-4452-941a-44486f559c9e
+.--- Submission: 1aba6a10-1970-43b5-bda9-be7167f400a4 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. fc25283e-b56b-4932-8955-a47d72e6efd3
+.--- Submission: 576595a9-a766-489e-ab2a-feb16f3e6c71 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. bb1606b4-8ece-49af-bc93-165befa4f1be
+.--- Submission: 1932b78e-b5db-4db9-b959-3b14b0f1cd0d (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 65153f20-2834-47fc-a717-7113fdf1e266
+.--- Submission: e48b4bc2-faf7-41bb-ada9-0fbd9ed68eb0 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. b83f2d27-5815-4ee0-9a63-12c83af56ce7
+.--- Submission: fdd7eca1-e12b-4713-a10d-e461962a26a9 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 93f41ab0-9847-40a8-ac6a-cdd5915b41fa
+.--- Submission: 453e9bac-8e2d-4fb5-86a5-bd031712527a (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for -103 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 104 workflows without cost information, e.g. cb8b74cb-cf5c-446d-949c-6a44f22187c8
+.--- Submission: e51549cd-3707-4788-9035-e7d7556f78ec (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. cd48dbf4-695f-46ec-873f-13d4beba07b6
+.--- Submission: 75c686b2-6d4c-46ba-a6c4-6001845c5409 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for -58 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 59 workflows without cost information, e.g. 2e5c257f-7544-461c-bda0-3d01b5da5a6b
+.--- Submission: b08619ec-0e08-4cb6-b1eb-b6083c6096b7 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. e6f6accd-3b91-44bf-b9a0-2428595187b5
+.--- Submission: ced4942f-59e9-4a3e-a37a-96fe60a1e812 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 061ffb05-d1a7-41d7-be60-2479532fe43e
+.--- Submission: ec7f61b1-1b36-4561-9921-e048cdab14f2 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. bb6faaad-8f28-459e-a0d0-18ff4a627da3
+.--- Submission: 2bbc3a80-b56f-49c6-b37c-560f987d4c74 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 408d2308-1176-4e78-aa5d-92d10c1bb30a
+.--- Submission: aa6f9605-5aa5-40f1-b639-f5294d392167 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 0c886267-8210-4638-abd1-7dd126376eae
+.--- Submission: 9cf22584-c630-48b0-8819-f927661fd36c (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. f2c7a7f1-ad43-4ec9-a244-a000a4a9002f
+.--- Submission: 43a26606-d51b-42f7-9380-926dd6bb4668 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. a167c6ae-b67a-49ee-b1aa-4b93720a9fed
+.--- Submission: fce3c897-54fa-4fab-9da4-bb469da3d685 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. a09d2c86-c29a-4860-881d-84c87c28cb1c
+.--- Submission: c1d34ece-4972-4500-b314-17fc3ac32af7 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. ec4d66f0-7d6b-45d1-9760-99fef8abfad2
+.--- Submission: 4e224f8c-d11f-48ec-a912-b32349b7ccc7 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. ab66170f-a54b-4eb2-bafb-c21580d6e052
+.--- Submission: de51ecd4-adfe-4e16-b944-43bf8977c128 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 2beef768-ba21-4ff4-bd00-5c597fb9b6ae
+.--- Submission: d118bff6-2ad4-4059-abe8-ce050d74535b (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for -47 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 48 workflows without cost information, e.g. 5e015b53-2d2f-4236-b1a2-3c4dbb121c71
+.--- Submission: 3397e87e-03e2-4f24-99d0-b4dda3dd0dcb (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 6966cf63-1b27-4898-afd3-041f611c9df7
+.--- Submission: cf3ab76b-8084-4549-b673-48bc02f3b538 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 3d2b4eb3-3df2-432f-b6be-3f1defc3e901
+.--- Submission: 84a4b6bb-a090-440e-9214-cc47375baf08 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. d16b16ba-570c-4d56-9a49-1166578ee2c7
+.--- Submission: abe4fabe-92dd-40c6-ab6d-8e1a4349da42 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. c9dcfdbc-8285-4084-8372-fc79640234a7
+.--- Submission: b8623ba8-5bbf-4284-b44b-d94aa2ef0a4c (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. cf42e7fa-6d62-4c43-b55b-d2b7eeaf34c6
+.--- Submission: a9dbcbd0-c6fa-4f80-ac1c-fb537273da45 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 58b0ba66-5ce9-4d0b-a797-ab83c9dd565f
+.--- Submission: b12a99ed-4713-4d26-98d5-643359296793 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. f8bf1538-f960-4dac-8903-d232c5a5cf49
+.--- Submission: 8490444a-066f-4bfa-b3ae-dc7b215a5280 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 27d392d2-6b30-4ce3-abfc-d92a8078d82a
+.--- Submission: b1fd5886-7f6e-45b7-a167-3a3f290b65fc (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 1241de5e-c85c-442b-9a25-504d8b094c19
+.--- Submission: bd927a34-2bc4-463f-9e45-89ae66d9ab12 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. d584b2da-fc08-46fb-865e-0b151baf089e
+.--- Submission: be12178f-3e16-439e-a400-a0b01784b09f (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 16d7b83e-d7ad-4635-97e3-5d3b4533dc15
+.--- Submission: 2c90638f-9ff7-4e01-aab9-872df587112a (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 37734dd3-7af1-4d5e-a0a0-44712152eb13
+.--- Submission: 60cdfe03-e274-459a-884c-fe43d38a36a4 (submitted by farjoun@broadinstitute.org)
+|    ----------------------------------------------------------------------------------------------------
+'--> Submission Cost (** for 0 out of 1 workflows): $0.000000 (cpu: $0.000000 | disk: $0.000000 | other: $0.000000)
+
+     ** 1 workflows without cost information, e.g. 8b573f54-0d23-415a-9da3-e5202f83a2a6
