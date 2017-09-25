@@ -11,7 +11,7 @@ if [ ! -d ~/.firecloud-tools ]; then
 	
 	pip install --upgrade pip
 	pip install PyYAML
-	pip install httplib2
+	pip install google-auth-httplib2
 	pip install google-api-python-client
 	pip install gcs-oauth2-boto-plugin
 	pip install retrying
