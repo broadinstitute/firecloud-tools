@@ -13,5 +13,6 @@ retrying firecloud xlrd google-cloud-bigquery google-cloud-logging pandas
 ENV HOME=/
 
 COPY scripts /scripts
+ENV PYTHONPATH "/scripts:${PYTHONPATH}"
+
 CMD ["/bin/bash"]
-ENV PYTHONPATH="/scripts"
