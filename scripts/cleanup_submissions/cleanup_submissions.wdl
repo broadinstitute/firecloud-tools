@@ -1,5 +1,4 @@
-workflow FC_cleanup {
-  
+workflow cleanup {
   File svcActKeyJson
   String workspaceProject
   String workspaceName
