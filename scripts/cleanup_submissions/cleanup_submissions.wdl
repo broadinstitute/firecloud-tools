@@ -2,6 +2,8 @@ workflow cleanup {
   File svcActKeyJson
   String workspaceProject
   String workspaceName
+  # Option 1: Provide an empty array to signal cleanup inside the entire workspace project.
+  # Option 2: Provide submissionIds targetted for cleanup as a non-empty array.
   Array[String] submissionIds
   Boolean useSubmissionIds = length(submissionIds) != 0
   Boolean dryRun
@@ -13,21 +15,25 @@ workflow cleanup {
   							  }
   }
 
+  # If the output from task `getSubmissionsInWorkspace` is available, use that list of submissionIds for cleanup.
+  # Else, assume that the user has provided a non-empty array of submissionIds for cleanup.
   Array[String] submissionIdsToClean = select_first([getSubmissionsInWorkspace.submissionIds, submissionIds])
 
-  
-  call getFilesOfSubmissions { input: svcActKeyJson=svcActKeyJson,
-  							      	workspaceProject=workspaceProject,
-  							      	workspaceName=workspaceName,
-  							      	submissionIds=submissionIdsToClean 
-  							}
-  if (!dryRun) {
-  	scatter (fofn in getFilesOfSubmissions.filesToDelete ) {
-  		call httpBatchDelete { input: fofn=fofn, 
-  		                           bucketName=getFilesOfSubmissions.bucketName, 
-  		                           svcActKeyJson=svcActKeyJson 
-  		}
-  	}
+  if (length(submissionIdsToClean) != 0) {
+    call getFilesOfSubmissions { input: svcActKeyJson=svcActKeyJson,
+    							      	workspaceProject=workspaceProject,
+    							      	workspaceName=workspaceName,
+    							      	submissionIds=submissionIdsToClean
+    							}
+    if (!dryRun) {
+    	scatter (fofn in getFilesOfSubmissions.filesToDelete ) {
+    		call httpBatchDelete { input: fofn=fofn,
+    		                           bucketName=getFilesOfSubmissions.bucketName,
+    		                           svcActKeyJson=svcActKeyJson
+    		                     }
+    	    }
+        }
+    }
   }
 
   output {
@@ -189,6 +195,7 @@ with open("files_to_delete.txt", "w") as filesToDelete:
 		print "total number of files to be cleaned up:", total
 CODE
 
+# In order to better parallelize the deletion, split the files marked for deletion into fofns containing 100K files each.
 split -l 100000 files_to_delete.txt del-
 
 }
