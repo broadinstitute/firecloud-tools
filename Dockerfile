@@ -6,7 +6,7 @@ RUN /bin/bash -c "source ~/.firecloud-tools/venv/bin/activate"
 	
 RUN pip install --upgrade pip
 
-RUN pip install PyYAML google-auth-httplib2 google-api-python-client gcs-oauth2-boto-plugin \ 
+RUN pip install PyYAML google-cloud google-auth-httplib2 google-api-python-client gcs-oauth2-boto-plugin \
 retrying firecloud xlrd google-cloud-bigquery google-cloud-logging pandas
 
 # Tell gcloud to save state in /.config so it's easy to override as a mounted volume.
