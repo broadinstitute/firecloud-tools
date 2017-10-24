@@ -1,0 +1,8 @@
+{
+  "run_hail.inputVds": "String",
+  "run_hail.inputAnnot": "String",
+  "run_hail.svcActKeyJson": "File",
+  "run_hail.hailCommandFile": "File",
+  "run_hail.pyhailSubmitFile": "File",
+  "run_hail.dataprocProject": "String"
+}
