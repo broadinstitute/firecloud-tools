@@ -1,0 +1,11 @@
+{
+  "run_hail.dataprocRegion": "us-central1",
+  "run_hail.svcActKeyJson": "/Users/abaumann/Downloads/default-compute-svc__ab-hail-fc-test-033ea7daaabd.json",
+  "run_hail.dataprocProject": "ab-hail-fc-test",
+  "run_hail.hailCommandFile": "/Users/abaumann/Documents/hail_wdl_test/hail_example.py",
+  "run_hail.inputVds": "/Users/abaumann/Downloads/data/1kg.vds",
+  "run_hail.inputAnnot": "/Users/abaumann/Downloads/data/1kg_annotations.txt",
+  "run_hail.outputFile": "/Users/abaumann/Downloads/data/1kg_annotations.txt",
+  "run_hail.qcResults": "/Users/abaumann/Downloads/data/1kg_annotations.txt",
+  "run_hail.hailSubmitFile": "hail_submit.py" 
+}

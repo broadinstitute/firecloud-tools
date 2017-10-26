@@ -57,8 +57,6 @@ if __name__ == "__main__":
     output = args.output
     qc_results = args.qcResults
     
-    print args
-
     vds = hc.read(input)
     vds.summarizeVDS()
 

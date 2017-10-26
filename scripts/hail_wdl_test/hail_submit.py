@@ -3,9 +3,11 @@ import googleapiclient.discovery
 import google.auth
 from google.cloud import storage
 import uuid
-   
+  
 # functions 
-def create_cluster(dataproc, project, region, cluster_name):
+def create_cluster(dataproc, project, region, cluster_name, 
+                   master_machine_type, master_boot_disk_size, 
+                   worker_num_instances, worker_machine_type, worker_boot_disk_size, worker_num_ssd, worker_preemptible):
     print('Creating cluster...')
     # https://cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.clusters#Cluster
     cluster_data = {
@@ -14,24 +16,25 @@ def create_cluster(dataproc, project, region, cluster_name):
         'config': {
             'gceClusterConfig': {
                 "serviceAccountScopes": [
-                  'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'
+                  'https://www.googleapis.com/auth/userinfo.profile', 
+                  'https://www.googleapis.com/auth/userinfo.email'
                 ]
             },
             "masterConfig": {
                 "numInstances": 1,
-                "machineTypeUri": args.dataprocMasterMachType,
+                "machineTypeUri": master_machine_type,
                 "diskConfig": {
-                   "bootDiskSizeGb": args.dataprocMasterBootDiskSize
+                   "bootDiskSizeGb": master_boot_disk_size
                 }
             },
             "workerConfig": {
-                "numInstances": args.dataprocNumWorkers,
-                "machineTypeUri": args.dataprocWorkerMachType,
+                "numInstances": worker_num_instances,
+                "machineTypeUri": worker_machine_type,
                 "diskConfig": {
-                    "bootDiskSizeGb": args.dataprocWorkerBootDiskSize,
-                    "numLocalSsds": args.dataprocWorkerNumSSD,
+                    "bootDiskSizeGb": worker_boot_disk_size,
+                    "numLocalSsds": worker_num_ssd,
                 },
-                "isPreemptible": args.dataprocWorkerPreemptible
+                "isPreemptible": "true" if worker_preemptible else "false"
             },
             "softwareConfig": {
                 "imageVersion": "1.1",
@@ -218,7 +221,10 @@ if __name__ == "__main__":
         
         print "Creating cluster {} in project: {}".format(cluster_name, project)
          
-        cluster_info = create_cluster(dataproc, project, args.dataprocRegion, cluster_name)
+        cluster_info = create_cluster(dataproc, project, args.dataprocRegion, cluster_name,
+                                      args.dataprocMasterMachType, args.dataprocMasterBootDiskSize, args.dataprocNumWorkers,
+                                      args.dataprocWorkerMachType, args.dataprocWorkerBootDiskSize, args.dataprocWorkerNumSSD,
+                                      args.dataprocWorkerPreemptible)
         cluster_uuid = cluster_info["metadata"]["clusterUuid"]
 
         active_clusters = wait_for_cluster_creation(dataproc, project, args.dataprocRegion, cluster_name)
