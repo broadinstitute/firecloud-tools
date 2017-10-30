@@ -59,6 +59,7 @@ task call_hail {
      # TODO move any user defined params to task inputs
      python <<CODE 
      from hail_submit import *
+     import re
      cluster_name = "firecloud-hail-{}".format(uuid.uuid4())
         
      print "Creating cluster {} in project: {}".format(cluster_name, "${dataprocProject}")
@@ -75,30 +76,33 @@ task call_hail {
          
          
          active_clusters = wait_for_cluster_creation(dataproc, dataproc_project, dataproc_region, cluster_name)
-         clusters = list_clusters(dataproc, project, args.dataproc_region)
+         clusters = list_clusters(dataproc, dataproc_project, dataproc_region)
          for cluster in clusters["clusters"]:
              if cluster["clusterUuid"] == cluster_uuid:
                  cluster_staging_bucket = cluster["config"]["configBucket"]
                  
-                 script_args = """--inputVds ${inputVds} 
-                                  --inputAnnot ${inputAnnot} \ 
-                                  --output gs://{}/1kg_out.vds \
-                                  --qcResults gs://{}/sampleqc.txt""".format(cluster_staging_bucket, cluster_staging_bucket).split(" ")
+                 # build argument array
+                 script_args = [ "--inputVds","${inputVds}",
+                                 "--inputAnnot", "${inputAnnot}", 
+                                 "--output", "gs://{}/1kg_out.vds".format(cluster_staging_bucket),
+                                 "--qcResults", "gs://{}/sampleqc.txt".format(cluster_staging_bucket) 
+                               ]
                  print script_args
 
-                            
                  job_id = submit_pyspark_job(dataproc, dataproc_project, dataproc_region,
                                              cluster_name, cluster_staging_bucket, "${hailCommandFile}", script_args)
             
                  job_result = wait_for_job(dataproc, dataproc_project, dataproc_region, job_id)
                 
-                 print job_result          
+                 print job_result   
+                 
+                 # TODO: delocalize from staging bucket to this VM, and declare those as outputs      
                  break
      except Exception as e:
          print e
          raise
      finally:
-         delete_cluster(dataproc, project, args.dataproc_region, cluster_name)
+         delete_cluster(dataproc, dataproc_project, dataproc_region, cluster_name)
      CODE
    >>>
 

@@ -90,7 +90,7 @@ def submit_pyspark_job(dataproc, project, region,
     hail_jar_path="gs://hail-common/{}".format(hail_jar_file)
     
     # upload the hail script to this dataproc staging bucket            
-    upload_blob(cluster_staging_bucket, hail_script_path, "script.py")
+    upload_blob(bucket_name, hail_script_path, "script.py")
                 
     """Submits the Pyspark job to the cluster, assuming `filename` has
     already been uploaded to `bucket_name`"""

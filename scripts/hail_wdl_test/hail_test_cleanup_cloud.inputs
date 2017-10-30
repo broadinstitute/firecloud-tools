@@ -1,0 +1,11 @@
+{
+  "run_hail.dataprocRegion": "us-central1",
+  "run_hail.svcActKeyJson": "gs://ab-prod-fc-credentials/default-compute-svc__ab-hail-fc-test-033ea7daaabd.json",
+  "run_hail.dataprocProject": "ab-hail-fc-test",
+  "run_hail.hailCommandFile": "gs://fc-8624185a-6057-4997-9182-265963b53d69/hail_example.py",
+  "run_hail.inputVds": "gs://fc-8624185a-6057-4997-9182-265963b53d69/data/1kg.vds",
+  "run_hail.inputAnnot": "gs://fc-8624185a-6057-4997-9182-265963b53d69/data/1kg_annotations.txt",
+  "run_hail.outputFile": "gs://fc-8624185a-6057-4997-9182-265963b53d69/data/1kg_annotations.txt",
+  "run_hail.qcResults": "gs://fc-8624185a-6057-4997-9182-265963b53d69/data/1kg_annotations.txt",
+  "run_hail.hailSubmitFile": "gs://fc-8624185a-6057-4997-9182-265963b53d69/hail_submit.py" 
+}
