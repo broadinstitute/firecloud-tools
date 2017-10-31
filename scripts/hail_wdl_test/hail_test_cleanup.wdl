@@ -1,27 +1,25 @@
 workflow run_hail {
   File svcActKeyJson
   String dataprocProject
-  File hailCommandFile
-  File hailSubmitFile
   String dataprocRegion
-  
+
+  File hailCommandFile
   String inputVds
   String inputAnnot
    
-  File outputFile
-  File qcResults
+  File outputVdsFileName
+  File qcResultsFileName
   
   call call_hail {
     input:
       svcActKeyJson=svcActKeyJson,
       dataprocProject=dataprocProject,
       hailCommandFile=hailCommandFile,
-      hailSubmitFile=hailSubmitFile,
       dataprocRegion=dataprocRegion,
       inputVds=inputVds,
       inputAnnot=inputAnnot,
-      outputFile=outputFile,
-      qcResults=qcResults
+      outputVdsFileName=outputVdsFileName,
+      qcResultsFileName=qcResultsFileName
   }
   
   output {
@@ -33,16 +31,18 @@ workflow run_hail {
 task call_hail {
    File svcActKeyJson
    String dataprocProject
+   # NOTE: right now it is localizing the python hail command file from a bucket - this could
+   #       instead localize from e.g. github, however if we do the localization here using wget,
+   #       then call caching won't know if the hail command file changed.  
    File hailCommandFile
-   # TODO remove this and get from github
-   File hailSubmitFile
    String dataprocRegion
    
    String inputVds
    String inputAnnot
    
-   File outputFile
-   File qcResults
+   String outputVdsFileName
+   String qcResultsFileName
+
   
    command <<<
      # for now until service accounts are natively available, we need to auth as the svc account
@@ -52,66 +52,76 @@ task call_hail {
      # set project for all subsequent gcloud calls
      gcloud config set project ${dataprocProject}
      
-     # TODO outputs are Files, document why (call caching)
-     # TODO optional delocalization in submit script
-     # TODO tell chris about this bug https://github.com/broadinstitute/firecloud-tools/blob/ab_hail_wdl/scripts/hail_wdl_test/hail_test_cleanup.wdl#L59
+     ##########################################################################################################
+     # NOTE: Unfortunately in order to support call caching we will need to localize the files to this
+     #       VM so that Cromwell knows about the files and adds them to the call caching.  To do this, 
+     #       the Hail jobs will write to the Dataproc staging bucket and then get copied to this VM and
+     #       referenced in the task output block.
+     ##########################################################################################################
      
-     # TODO move any user defined params to task inputs
      python <<CODE 
      from hail_submit import *
-     import re
+     import os
      cluster_name = "firecloud-hail-{}".format(uuid.uuid4())
-        
-     print "Creating cluster {} in project: {}".format(cluster_name, "${dataprocProject}")
-          
+     dataproc_region = "${dataprocRegion}"
+     dataproc_project = "${dataprocProject}"
+     
      try:
-         dataproc_region = "${dataprocRegion}"
-         dataproc_project = "${dataprocProject}"
-         dataproc = get_client()    
+         dataproc = get_client()
+         # update cluster specs here as appropriate for the hail command 
          cluster_info = create_cluster(dataproc, dataproc_project, dataproc_region, cluster_name,
                                        "n1-standard-8", 100, 2,
                                        "n1-standard-8", 75, 0,
                                        False)
          cluster_uuid = cluster_info["metadata"]["clusterUuid"]
          
-         
          active_clusters = wait_for_cluster_creation(dataproc, dataproc_project, dataproc_region, cluster_name)
+         # list the clusters in the project and look for this specific cluster
          clusters = list_clusters(dataproc, dataproc_project, dataproc_region)
          for cluster in clusters["clusters"]:
              if cluster["clusterUuid"] == cluster_uuid:
                  cluster_staging_bucket = cluster["config"]["configBucket"]
                  
-                 # build argument array
+                 # build argument array - update this with your python hail command arguments.
+                 # see note above about call caching - outputs go to the staging bucket
                  script_args = [ "--inputVds","${inputVds}",
-                                 "--inputAnnot", "${inputAnnot}", 
-                                 "--output", "gs://{}/1kg_out.vds".format(cluster_staging_bucket),
-                                 "--qcResults", "gs://{}/sampleqc.txt".format(cluster_staging_bucket) 
+                                 "--annot", "${inputAnnot}",
+                                 "--outputVds", "gs://"+cluster_staging_bucket+"/"+"${outputVdsFileName}",
+                                 "--qcResults", "gs://"+cluster_staging_bucket+"/"+"${qcResultsFileName}"
                                ]
-                 print script_args
-
                  job_id = submit_pyspark_job(dataproc, dataproc_project, dataproc_region,
                                              cluster_name, cluster_staging_bucket, "${hailCommandFile}", script_args)
-            
+                                             
                  job_result = wait_for_job(dataproc, dataproc_project, dataproc_region, job_id)
                 
-                 print job_result   
-                 
-                 # TODO: delocalize from staging bucket to this VM, and declare those as outputs      
+                 print job_result
                  break
+         
+         # see note above about call caching - copy files from staging bucket onto the local disk
+         print os.popen("gsutil cp -r gs://{}/{} .".format(cluster_staging_bucket, "${qcResultsFileName}")).read()
+         print os.popen("gsutil cp -r gs://{}/{} .".format(cluster_staging_bucket, "${outputVdsFileName}")).read()
      except Exception as e:
          print e
          raise
      finally:
          delete_cluster(dataproc, dataproc_project, dataproc_region, cluster_name)
      CODE
+     
+     # NOTE: delocalization does not work here to get a specific directory, only the contents of a directory via
+     #       globs.  since vds files are folders and we need to retain the folder itself, we instead tar the
+     #       directory and will need to untar it in downstream tasks in order to make use of it.
+     tar -cvf ${outputVdsFileName}.tar ${outputVdsFileName}
    >>>
-
+   
    runtime {
-   	docker: "hail-submit"
+   	docker: "broadinstitute/firecloud-tools:hail_wdl"
     memory: 1
     disks: "local-disk 1 HDD"
    }
    
+   # see note above about call caching - reference the files that were localized to this VM
    output {
+     File outputVdsTar = "${outputVdsFileName}.tar"
+     File qcResults = "${qcResultsFileName}"
    }
 }

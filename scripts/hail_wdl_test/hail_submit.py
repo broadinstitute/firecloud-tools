@@ -8,7 +8,8 @@ import uuid
 def create_cluster(dataproc, project, region, cluster_name, 
                    master_machine_type, master_boot_disk_size, 
                    worker_num_instances, worker_machine_type, worker_boot_disk_size, worker_num_ssd, worker_preemptible):
-    print('Creating cluster...')
+    print "Creating cluster {} in project: {}".format(cluster_name, project)
+    
     # https://cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.clusters#Cluster
     cluster_data = {
         'projectId': project,
