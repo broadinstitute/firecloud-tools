@@ -5,7 +5,7 @@ Usage:
 
 * All submissions in a workspace: ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\>
 * All workflows in a submission:  ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\>
-* A single submission:            ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\> -w \<workflow id\>
+* A single workflow:            ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\> -w \<workflow id\>
 
 
 The output is in the following form per workflow:
