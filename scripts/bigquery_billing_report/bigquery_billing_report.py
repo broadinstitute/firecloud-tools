@@ -345,9 +345,14 @@ def main():
     if not args.dataset_name:
         print "Note that this script expects the billing export table to be named 'billing_export'.  "
 
+    # dataset project comes from argument if provided, otherwise assume the big query dataset is in the workspace project
+    dataset_project = args.dataset_project if args.dataset_project else args.ws_namespace
+    # bill to the provided argument if provided, otherwise bill to the dataset_project
+    bill_query_to_project = args.bill_to_project if args.bill_to_project else dataset_project
+
     print_submission_pricing(args.ws_namespace, args.ws_name, args.submission_id, args.workflow_id, args.show_all_calls,
-                             args.bill_to_project if args.bill_to_project else args.ws_namespace,
-                             args.dataset_project if args.dataset_project else args.ws_namespace,
+                             bill_query_to_project,
+                             dataset_project,
                              args.dataset_name if args.dataset_name else 'billing_export',
                              args.print_queries)
 
