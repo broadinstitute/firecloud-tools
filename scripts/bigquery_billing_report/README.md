@@ -9,12 +9,12 @@ Usage:
 
 
 * For Big Query datasets not exported to the firecloud billing project:
-** -dp <big query dataset project> - optional argument to provide a different project
-** -dn <big query dataset name>    - optional argument for name of dataset where big query exports go to
-** -bp <project to run big query query within> - optional argument for project to run the query within - needs to be a project you have ability to run BQ queries within
+  * -dp <big query dataset project> - optional argument to provide a different project
+  * -dn <big query dataset name>    - optional argument for name of dataset where big query exports go to
+  * -bp <project to run big query query within> - optional argument for project to run the query within - needs to be a project you have ability to run BQ queries within
 * Other arguments:
-** -p - optionally print the BQ queries
-** -c - optionally print info about all calls
+  * -p - optionally print the BQ queries
+  * -c - optionally print info about all calls
 
 The output is in the following form per workflow:
 ```
