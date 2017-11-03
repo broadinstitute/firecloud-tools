@@ -4,7 +4,8 @@ entity_update.tsv
 __pycache__/
 *.py[cod]
 *$py.class
-
+scripts/*.py[cod]
+scripts/*$py.class
 # Environments
 .env
 .venv
@@ -14,3 +15,5 @@ ENV/
 
 # IntelliJ
 **/.idea/
+
+.firecloud-tools
