@@ -22,7 +22,7 @@ if [ ! -d ~/.firecloud-tools ]; then
 	#pip install .
 fi
 
-export PYTHONPATH=./:$PYTHONPATH
+export PYTHONPATH=./:scripts:$PYTHONPATH
 source ~/.firecloud-tools/venv/bin/activate
 
 python -u $@

@@ -60,14 +60,13 @@ def main():
     if args.wdl_inputs is not None:
         with open (args.wdl_inputs, 'r') as f:
             inputs_json = json.loads(f.read())
-            #Filter out any key/values that contain # and escape characters
-            inputs_1 = {k:v for k,v in inputs_json.iteritems() if '#' not in k}
-            inputs = json.loads(json.dumps(inputs_1).replace('"','"\\"'))
+            #Filter out any key/values that contain #, and escape strings with quotes as MCs need this to not be treated as expressions
+            inputs = {k:"\"{}\"".format(v) if isinstance(v, basestring) else v for k,v in inputs_json.iteritems() if '#' not in k}
     else:
         inputs = {}
 
     #Build JSON for method config
-    method_body = json.dumps({
+    method_body = {
         'name': config_name,
         'namespace': config_namespace,
         'methodRepoMethod': { 'methodNamespace': args.method_namespace,
@@ -79,18 +78,35 @@ def main():
         "methodConfigVersion": 1,
         "deleted": False,
         "inputs": inputs,
-        "outputs": {}
-        })
+        "outputs": {} 
+        }
 
 
-    print("method body: ")
-    print(method_body)
+    #print("method body: ")
+    #print(method_body)
 
     #TODO: perform GET to see if the method config already exists and use update_workspace_config instead
 
-    config_submission = firecloud_api.create_workspace_config(args.workspace_namespace, args.workspace_name, method_body)
+    config_exists = firecloud_api.get_workspace_config(args.workspace_namespace, args.workspace_name, config_namespace, config_name)
+    
+    failed = False
+    if config_exists.status_code == 200:
+        config_submission = firecloud_api.update_workspace_config(args.workspace_namespace, args.workspace_name, config_namespace, config_name, method_body)
+        if config_submission.status_code == 200:
+            print "method config updated."
+        else:
+            failed = True
+        
+    else:
+        config_submission = firecloud_api.create_workspace_config(args.workspace_namespace, args.workspace_name, method_body)
+        update_status = config_submission.status_code
+        if config_submission.status_code == 201:
+            print "method config created."
+        else:
+            failed = True
+        
     config_submission_json = config_submission.json()
-    if config_submission.status_code != 201:
+    if failed:
         print("Failed request response:")
         print(config_submission_json)
         fail("Unable to create method config: %s %s " % (config_namespace, config_name))
