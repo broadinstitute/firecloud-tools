@@ -35,6 +35,8 @@ def main():
 
     parser.add_argument('-e', '--root-entity', dest='root_entity', action='store', required=False, help='Method config root entity (Default: participant)')
 
+    parser.add_argument('-l', '--launch-entity', dest='launch_entity', action='store', required=False, help='Optional flag to launch method against a given entity')
+
     args = parser.parse_args()
 
     docs = args.method_docs if (args.method_docs) else None
@@ -111,6 +113,15 @@ def main():
         print(config_submission_json)
         fail("Unable to create method config: %s %s " % (config_namespace, config_name))
 
-
+    if args.launch_entity:
+       launch_submission = firecloud_api.create_submission(args.workspace_namespace, args.workspace_name, 
+                                                           config_namespace, config_name,
+                                                           args.launch_entity, args.root_entity, "")
+       if launch_submission.status_code == 201:
+           submissionId = launch_submission.json()["submissionId"]
+           print "Submission Launched - status can be checked at:"
+           print "https://portal.firecloud.org/#workspaces/{}/{}/monitor/{}".format(args.workspace_namespace, args.workspace_name, submissionId)
+       else:
+           fail("Unable to launch submission - " + launch_submission.json())
 if __name__ == "__main__":
     main()
