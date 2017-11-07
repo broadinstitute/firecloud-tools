@@ -83,12 +83,6 @@ def main():
         "outputs": {} 
         }
 
-
-    #print("method body: ")
-    #print(method_body)
-
-    #TODO: perform GET to see if the method config already exists and use update_workspace_config instead
-
     config_exists = firecloud_api.get_workspace_config(args.workspace_namespace, args.workspace_name, config_namespace, config_name)
     
     failed = False
