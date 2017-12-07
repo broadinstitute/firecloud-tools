@@ -18,7 +18,7 @@ def main():
     headers = {"Authorization": "bearer " + credentials.get_access_token().access_token}
     headers["User-Agent"] = firecloud_api.FISS_USER_AGENT
 
-    uri = "https://api.firecloud.org/register/profile"
+    uri = args.fc_url+"/register/profile" if args.fc_url else "https://api.firecloud.org/register/profile"
 
     profile_json = {"firstName":"None", "lastName": "None", "title":"None", "contactEmail":args.owner_email,
                                "institute":"None", "institutionalProgram": "None", "programLocationCity": "None", "programLocationState": "None",
