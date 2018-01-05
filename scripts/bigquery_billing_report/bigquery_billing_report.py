@@ -184,6 +184,8 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                     elif call["callCaching"]["hit"]:
                         num_calls += 1
                         cache_hit = True
+                    else:
+                        num_calls = 0
                                     
                 call_pricing = call_name_to_cost[call_name]
 
@@ -228,6 +230,10 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                         print "|\t|\t\t\t(call cache hit)"
                     else:
                         print "|\t|\t\t\t(missing cost information)"
+                
+                # if there were no calls that have backendLabels or call cache hits, then print a warning
+                if num_calls == 0:
+                    print "|\t|\t\t\t(WARNING: calls for this task were missing required info to compute cost)"
 
             print "|\t|    %s" % ("-" * 100)
             print "|\t'--> Workflow Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n|" % (
