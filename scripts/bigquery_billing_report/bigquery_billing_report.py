@@ -147,49 +147,44 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                 workflow_ids_with_no_cost.add(wf_id)
                 continue
 
+            print "|\t.--- Workflow %d of %d: %s (%s)" % (wf_count, wf_total_count, wf_id, workflow_json["status"])
+            wf_count += 1
+            
             workflow_metadata_json = get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id)
 
             if "calls" not in workflow_metadata_json:
-                # print ws_namespace, ws_name, submission_id, wf_id, workflow_metadata_json
-                continue
-
-            # workflow_metadata_json = workflow_id_to_metadata_json[wf_id]
-            calls_lower_json = dict(
-                (k.split(".")[-1].lower(), v) for k, v in workflow_metadata_json["calls"].iteritems())
-
-            if len(calls_lower_json) == 0:
                 print "\tNo Calls."
-            else:
-                calls_lower_translated_json = {}
-                for calls_name, call_json in calls_lower_json.iteritems():
-                    # from the Cromwell documentation call names can be translated into a different format
-                    # under certain circumstances.  We will try translating it here and see if we get a match.
-                    # Rules:
-                    # Any capital letters are lowercased.
-                    # Any character which is not one of [a-z], [0-9] or - will be replaced with -.
-                    # If the start character does not match [a-z] then prefix with x--
-                    # If the final character does not match [a-z0-9] then suffix with --x
-                    # If the string is too long, only take the first 30 and last 30 characters and add --- between them.
-                    # TODO: this is not a complete implementation - however I requested that cromwell metadata includes label
-                    # TODO: so that this translation is not necessary
-                    cromwell_translated_callname = re.sub("[^a-z0-9\-]", "-", call_name.lower())
-                    calls_lower_translated_json[cromwell_translated_callname] = call_json
-
-            print "|\t.--- Workflow %d of %d: %s (%s)" % (wf_count, wf_total_count, wf_id, workflow_json["status"])
-            wf_count += 1
-
+                continue
+                
             call_name_to_cost = defaultdict(list)
             for c in workflow_id_to_cost[wf_id]:
                 call_name_to_cost[c.call_name].append(c)
-
+            
             total = 0.0
             pd_cost = 0.0
             cpu_cost = 0.0
             other_cost = 0.0
-            for call_name in call_name_to_cost:
-                calls = calls_lower_json[call_name] if call_name in calls_lower_json else calls_lower_translated_json[
-                    call_name]
-
+            
+            for task_name, calls in workflow_metadata_json["calls"].iteritems():           
+                call_name = None
+                num_calls = 0
+                cache_hit = False
+                
+                # go through each call to find it's backendLabels to match up with the
+                # labels in BQ.  Calls that never ran will not have these, and will not be counted.
+                for call in calls:
+                    if "backendLabels" in call:
+                        # first look for wdl-call-alias if it was used, otherwise fall back to wdl-task-name
+                        if "wdl-call-alias" in call["backendLabels"]:
+                            call_name = call["backendLabels"]["wdl-call-alias"]
+                        else:
+                            call_name = call["backendLabels"]["wdl-task-name"]
+                        # since this has a backendLabel it was not a call cache hit, so add to number of calls
+                        num_calls += 1
+                    elif call["callCaching"]["hit"]:
+                        num_calls += 1
+                        cache_hit = True
+                                    
                 call_pricing = call_name_to_cost[call_name]
 
                 resource_type_to_pricing = defaultdict(int)
@@ -197,14 +192,7 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                     if pricing.cost > 0:
                         resource_type_to_pricing[pricing.resource_type] += pricing.cost
 
-                if call_name in calls_lower_json:
-                    num_calls = len(calls)
-                else:
-                    if call_name in calls_lower_translated_json:
-                        num_calls = len(calls_lower_translated_json[call_name])
-                    else:
-                        num_calls = 0
-                print "|\t|\t%-10s%s:" % ("(%dx)" % num_calls, call_name)
+                print "|\t|\t%-10s%s:" % ("(%dx)" % num_calls, "%s [%s]" % (task_name, call_name) if call_name else task_name)
 
                 if show_all_calls:
                     for call in sorted(calls, key=lambda call: call["attempt"]):
@@ -236,7 +224,10 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                         print "|\t|\t\t\t%s%s" % (("$%f" % cost).ljust(15), resource_type)
                 else:
                     workflow_ids_with_no_cost.add(wf_id)
-                    print "|\t|\t\t\t(missing cost information)"
+                    if cache_hit:
+                        print "|\t|\t\t\t(call cache hit)"
+                    else:
+                        print "|\t|\t\t\t(missing cost information)"
 
             print "|\t|    %s" % ("-" * 100)
             print "|\t'--> Workflow Cost: $%f (cpu: $%f | disk: $%f | other: $%f)\n|" % (
@@ -253,14 +244,14 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
         else:
             print "|    %s" % ("-" * 100)
             missing_workflows = len(workflow_ids_with_no_cost) > 0
-            caveat_text = (" (** for %d out of %d workflows)") % (
+            caveat_text = (" (for %d out of %d workflows **)") % (
                 wf_count - len(workflow_ids_with_no_cost), wf_count) if missing_workflows else ""
-            print "'--> Submission Cost%s: $%f (cpu: $%f | disk: $%f | other: $%f)\n" % (
+            print "'--> Submission Cost%s: $%f (cpu: $%f | disk: $%f | other: $%f)" % (
                 caveat_text, submission_total, submission_cpu_cost, submission_pd_cost, submission_other_cost)
             if missing_workflows:
                 print "     ** %d workflows without cost information, e.g. %s" % (
                     len(workflow_ids_with_no_cost), next(iter(workflow_ids_with_no_cost)))
-
+            print "\n"
 
 class CostRow():
     def __init__(self, cost, product, resource_type, workflow_id, task_name, call_name):

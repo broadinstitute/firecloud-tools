@@ -132,8 +132,7 @@ def setup():
     if registration_info.status_code != 200:
         fail("This account is not registered with FireCloud.")
 
-    print "Using credentials for firecloud account:", registration_info.json()["userInfo"]["userEmail"]
-
+    sys.stderr.write("Using credentials for firecloud account: %s\n" % registration_info.json()["userInfo"]["userEmail"])
 
 def get_workflow_metadata(namespace, name, submission_id, workflow_id, *include_keys):
     headers = firecloud_api._fiss_access_headers()
@@ -159,7 +158,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def fail(message):
-    print "\n\nExiting -- %s" % message
+    sys.stderr.write("\n\nExiting -- %s\n" % message)
     sys.exit(1)
 
 
