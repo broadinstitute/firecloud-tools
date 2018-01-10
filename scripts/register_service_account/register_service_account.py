@@ -1,14 +1,15 @@
 ##!/usr/bin/env python
 from common import *
-
+from argparse import ArgumentParser
 
 def main():
     # The main argument parser
-    parser = DefaultArgsParser(description="Register a service account for use in FireCloud.")
+    parser = ArgumentParser(description="Register a service account for use in FireCloud.")
 
     # Core application arguments
     parser.add_argument('-j', '--json_credentials', dest='json_credentials', action='store', required=True, help='Path to the json credentials file for this service account.')
     parser.add_argument('-e', '--owner_email', dest='owner_email', action='store', required=True, help='Email address of the person who owns this service account')
+    parser.add_argument('-u', '--url', dest='fc_url', action='store', default="https://api.firecloud.org", required=False, help='Base url of FireCloud server to contact (default https://api.firecloud.org)')
 
     args = parser.parse_args()
 
@@ -18,7 +19,7 @@ def main():
     headers = {"Authorization": "bearer " + credentials.get_access_token().access_token}
     headers["User-Agent"] = firecloud_api.FISS_USER_AGENT
 
-    uri = "https://api.firecloud.org/register/profile"
+    uri = args.fc_url + "/register/profile"
 
     profile_json = {"firstName":"None", "lastName": "None", "title":"None", "contactEmail":args.owner_email,
                                "institute":"None", "institutionalProgram": "None", "programLocationCity": "None", "programLocationState": "None",
