@@ -3,16 +3,21 @@ import googleapiclient.discovery
 import google.auth
 from google.cloud import storage
 import uuid
-
+from pprint import pprint
 
 # functions
-def create_cluster(dataproc, project, region, cluster_name,
-                   master_machine_type, master_boot_disk_size,
-                   worker_num_instances, worker_machine_type,
-                   worker_boot_disk_size, worker_num_ssd, worker_preemptible):
+def create_cluster(
+        dataproc, project, region, cluster_name,
+        master_machine_type, master_boot_disk_size,
+        worker_num_instances, worker_machine_type,
+        worker_boot_disk_size, worker_num_ssd,
+        preemptible_num_instances, preemptible_boot_disk_size):
+
     print("Creating cluster {} in project: {}".format(cluster_name, project))
 
     # https://cloud.google.com/dataproc/docs/reference/rest/v1/projects.regions.clusters#Cluster
+    # https://cloud.google.com/dataproc/docs/reference/rest/v1beta2/ClusterConfig?authuser=1#InstanceGroupConfig
+
     cluster_data = {
         'projectId': project,
         'clusterName': cluster_name,
@@ -36,19 +41,26 @@ def create_cluster(dataproc, project, region, cluster_name,
                 "diskConfig": {
                     "bootDiskSizeGb": worker_boot_disk_size,
                     "numLocalSsds": worker_num_ssd,
+                }
+            },
+            'secondaryWorkerConfig': {
+                "numInstances": preemptible_num_instances,
+                "machineTypeUri": worker_machine_type,
+                "diskConfig": {
+                    "bootDiskSizeGb": preemptible_boot_disk_size,
                 },
-                "isPreemptible": "true" if worker_preemptible else "false"
+                "isPreemptible": "true"
             },
             "softwareConfig": {
                 "imageVersion": "1.1",
                 "properties": {
-                    "spark:spark.driver.extraJavaOptions":"-Xss4M",
-                    "spark:spark.executor.extraJavaOptions":"-Xss4M",
-                    "spark:spark.driver.memory":"45g",
+                    "spark:spark.driver.extraJavaOptions": "-Xss4M",
+                    "spark:spark.executor.extraJavaOptions": "-Xss4M",
+                    "spark:spark.driver.memory": "45g",
                     "spark:spark.driver.maxResultSize": "30g",
-                    "spark:spark.task.maxFailures":"20",
-                    "spark:spark.kryoserializer.buffer.max":"1g",
-                    "hdfs:dfs.replication":"1"
+                    "spark:spark.task.maxFailures": "20",
+                    "spark:spark.kryoserializer.buffer.max": "1g",
+                    "hdfs:dfs.replication": "1"
                 }
             },
             "initializationActions": [
@@ -218,9 +230,12 @@ if __name__ == "__main__":
         '--dataprocWorkerNumSSD', default=0, type=int,
         help='Number of SSD disks for use in the worker nodes, e.g. 2')
     parser.add_argument(
-        '--dataprocWorkerPreemptible', required=False, action='store_true',
-        default=False,
+        '--dataprocNumWorkerPreemptible', default=0, type=int,
         help='Number of preemptible instances to use for worker nodes, e.g. 2')
+    parser.add_argument(
+        '--dataprocPreemptibleBootDiskSize', default=40, type=int,
+        help='Disk size of preemptible machines, in GB (default: %(default)s.)'
+    )
     parser.add_argument(
         '--dataprocRegion', dest='dataprocRegion', required=False,
         default="us-central1",
@@ -236,19 +251,19 @@ if __name__ == "__main__":
     args, script_args = parser.parse_known_args()
 
     dataproc = get_client()
+
     try:
         # get the current project from gcloud config
         project = args.project if args.project else google.auth.default()[1]
         cluster_name = "firecloud-hail-{}".format(uuid.uuid4())
-
-        print("Creating cluster {} in project: {}".format(cluster_name, project))
 
         cluster_info = create_cluster(
             dataproc, project, args.dataprocRegion, cluster_name,
             args.dataprocMasterMachType, args.dataprocMasterBootDiskSize,
             args.dataprocNumWorkers, args.dataprocWorkerMachType,
             args.dataprocWorkerBootDiskSize, args.dataprocWorkerNumSSD,
-            args.dataprocWorkerPreemptible)
+            args.dataprocNumWorkerPreemptible,
+            args.dataprocPreemptibleBootDiskSize)
         cluster_uuid = cluster_info["metadata"]["clusterUuid"]
 
         active_clusters = wait_for_cluster_creation(
