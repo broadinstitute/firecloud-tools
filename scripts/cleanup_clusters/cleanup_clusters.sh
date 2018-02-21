@@ -13,6 +13,8 @@ then
     exit 1
 fi
 
+
+# TODO: quality.firecloud.org ?
 TEST_ADMIN_SUFFIX='@test.firecloud.org'
 
 USER=$(gcloud auth list | grep '*' | tr -s ' ' | cut -f2 -d' ')
