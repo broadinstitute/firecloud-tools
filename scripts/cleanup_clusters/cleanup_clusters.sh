@@ -13,18 +13,17 @@ then
     exit 1
 fi
 
-
-# TODO: quality.firecloud.org ?
 TEST_ADMIN_SUFFIX='@test.firecloud.org'
+QUALITY_ADMIN_SUFFIX='@quality.firecloud.org'
 
 USER=$(gcloud auth list | grep '*' | tr -s ' ' | cut -f2 -d' ')
 echo "You are currently logged in as $USER"
 
-if [[ "$USER" != *"$TEST_ADMIN_SUFFIX" ]]
+if [[ "$USER" != *"$TEST_ADMIN_SUFFIX" && "$USER" != *"$QUALITY_ADMIN_SUFFIX" ]]
 then
     echo "***ERROR***"
-    echo "This script is intended for running only by test-domain admins."
-    echo "Please run 'gcloud auth login' with an email ending in $TEST_ADMIN_SUFFIX and try again."
+    echo "This script is intended for running only by test-domain and quality-domain admins."
+    echo "Please run 'gcloud auth login' with an email ending in $TEST_ADMIN_SUFFIX or $QUALITY_ADMIN_SUFFIX and try again."
     echo "***ERROR***"
 
     exit 2
