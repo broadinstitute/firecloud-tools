@@ -43,6 +43,7 @@ for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
                 # get the UTC time of the last status change for this cluster
                 LAST_STATUS=$(gcloud dataproc clusters describe --format='table(STATUS.stateStartTime)[no-heading]' --project $proj --region us-central1 $cluster | cut -f1 -d'.')
 
+                # NOTE! this assumes the BSD date command on OS X.  Will likely need tweaks for GNU date on Linux.
                 SECONDS_AGO=$(( `date +%s` - `date -j -u -f '%Y-%m-%dT%H:%M:%S' $LAST_STATUS +%s` ))
                 DAYS_AGO=$(( $SECONDS_AGO / (60 * 60 * 24) ))
 
