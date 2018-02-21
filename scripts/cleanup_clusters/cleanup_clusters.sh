@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 ACTION=$1
 
 if [[ "$ACTION" != "list" && "$ACTION" != "delete" ]]
@@ -35,7 +33,8 @@ for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
     do
         # does this project have dataproc enabled? calling 'gcloud dataproc' will error if not
         DATAPROC=$(gcloud services list --enabled --format='table(NAME)[no-heading]' --project $proj | grep dataproc.googleapis.com)
-        if [ $? -eq 0 ]
+        ERR=$?
+        if [ $ERR -eq 0 ]
         then
             for cluster in `gcloud dataproc clusters list --region $CLUSTER_REGION --format='table(NAME)[no-heading]' --project $proj`
             do
