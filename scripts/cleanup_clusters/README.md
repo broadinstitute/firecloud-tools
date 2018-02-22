@@ -1,7 +1,8 @@
 ## List and delete Dataproc clusters across projects
 This script will query Google projects for old Dataproc clusters and optionally call deletion APIs.
 
-In order to run this script you will need to first run `gcloud auth login <you>@test.firecloud.org` as your admin user.
+Prerequisites: the [Google Cloud SDK](https://cloud.google.com/sdk/) and a Firecloud Test Domain Admin or Quality 
+Domain Admin user.  Before running this script, log in as that user: `gcloud auth login <email>`
 
 Usage (from the main directory):
 
