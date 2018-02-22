@@ -27,6 +27,7 @@ then
     exit 2
 fi
 
+# Leonardo only creates clusters in this region
 CLUSTER_REGION='us-central1'
 
 for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
