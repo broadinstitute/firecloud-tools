@@ -30,6 +30,9 @@ fi
 # Leonardo only creates clusters in this region
 CLUSTER_REGION='us-central1'
 
+TODAY=$(date +"%Y-%m-%d")
+LOG_FILE="deletions-$TODAY.csv"
+
 for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
     do
         # does this project have dataproc enabled? calling 'gcloud dataproc' will error if not
@@ -56,6 +59,7 @@ for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
                         echo "Deleting old cluster $cluster in $proj ... last updated $DAYS_AGO days ago"
                         yes | gcloud dataproc clusters delete --async --region $CLUSTER_REGION --project $proj $cluster
                         echo
+                        echo "$proj,$cluster,$DAYS_AGO" >> $LOG_FILE
                     else
                         echo "Would delete old cluster $cluster in $proj ... last updated $DAYS_AGO days ago"
                     fi
