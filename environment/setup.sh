@@ -2,6 +2,7 @@ set -e
 cd "$(dirname "$0")"
 # only do the setup if it has not already been done
 if [ ! -d ~/.firecloud-env.config ]; then
+    #TODO: handle if gcloud is not installed, if they have multiple identities ask if they are using the right one
     read -p "Do you have an existing Google project where you want to run Cromwell workflows? (yes or no) " yn
     case $yn in
         [Yy]* ) read -p "Enter your project name: " project;;
@@ -38,6 +39,13 @@ if [ ! -d ~/.firecloud-env.config ]; then
                     echo
                     echo "Project created and can be viewed at: https://console.cloud.google.com/home/dashboard?project=$project"
                     ;;
+                    
+                    gcloud config set project $project
+                    gsutil 
+                    
+                    #TODO: create an execution bucket, 
+                    #TODO: ask for dockerhub credentials if they are going to use private dockers
+                    #TODO: create config with: execution bucket, project, 
                [Nn]* ) 
                     echo "Exiting."
                     exit 1 
