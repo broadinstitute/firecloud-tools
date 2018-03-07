@@ -12,8 +12,10 @@ if [ ! -d ~/.firecloud-env.config ]; then
             read -p "Would you like to continue? (yes or no) " yn
             case $yn in
                [Yy]* ) 
+                    echo "You have access to the following billing accounts."
+                    echo "--------------------------------------------------------------------------------"
+                    gcloud alpha billing accounts list
                     accounts=$(gcloud alpha billing accounts list 2>&1)
-                    
                     if echo $accounts | grep -q "Listed 0 items"; then 
                         echo
                         echo "You do not have a Google billing account setup.  In order to run "
@@ -25,27 +27,29 @@ if [ ! -d ~/.firecloud-env.config ]; then
                     fi
                     
                     echo 
-                    echo "Please choose a billing account to bill this new project to from the list below "
-                    echo "by providing it's ID.  IDs will look similar to this: 002481-B7351F-CD111E"
-                    echo "--------------------------------------------------------------------------------"
-                    gcloud alpha billing accounts list
                     echo
-                    read -p "Enter the billing account ID to use for this project: " account
+                    echo "Enter the billing account ID to use for this project" 
+                    read -p "    (IDs will look similar to this: 002481-B7351F-CD111E):" account
                     #gcloud projects create 
+                    #TODO: make more unique project name (with date?)
                     project="fc-env-$(gcloud config get-value account | sed 's/@.*//')"
                     echo
                     gcloud projects create $project
                     gcloud alpha billing accounts projects link $project --billing-account=$account
                     echo
                     echo "Project created and can be viewed at: https://console.cloud.google.com/home/dashboard?project=$project"
-                    ;;
+                    bucket=$project-executions
+                    gsutil mb -p $project gs://$bucket
+                    echo "Bucket created for Cromwell execution outputs and can be viewed at: https://console.cloud.google.com/storage/browser/$bucket"
                     
-                    gcloud config set project $project
-                    gsutil 
                     
-                    #TODO: create an execution bucket, 
+
                     #TODO: ask for dockerhub credentials if they are going to use private dockers
                     #TODO: create config with: execution bucket, project, 
+
+                    ;;
+                    
+                    
                [Nn]* ) 
                     echo "Exiting."
                     exit 1 
