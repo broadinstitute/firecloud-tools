@@ -77,7 +77,7 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                            """ % (dataset_project_name, dataset_name, ws_namespace, workflows_subquery)
         if print_queries:
             print query
-
+        
         query_results = client.run_sync_query(query)
 
         # Use standard SQL syntax for queries.
@@ -102,7 +102,7 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                 cost = row[2]
                 product = row[3]
                 resource_type = row[4]
-
+                
                 workflow_id = labels["cromwell-workflow-id"].replace("cromwell-", "")
                 task_name = labels["wdl-task-name"]
 
@@ -118,6 +118,7 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
             if not page_token:
                 break
 
+    
     submission_id_to_workflows = defaultdict(list)
     for wf_id in workflow_dict:
         workflow = workflow_dict[wf_id]
@@ -150,8 +151,8 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
             print "|\t.--- Workflow %d of %d: %s (%s)" % (wf_count, wf_total_count, wf_id, workflow_json["status"])
             wf_count += 1
             
-            workflow_metadata_json = get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id)
-
+            workflow_metadata_json = firecloud_api.get_workflow_metadata(ws_namespace, ws_name, submission_id, wf_id).json()
+            
             if "calls" not in workflow_metadata_json:
                 print "\tNo Calls."
                 continue
