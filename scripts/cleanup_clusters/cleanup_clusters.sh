@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 ACTION=$1
+LOG_SUFFIX=$2
 
 if [[ "$ACTION" != "list" && "$ACTION" != "delete" ]]
 then
@@ -31,7 +32,7 @@ fi
 CLUSTER_REGION='us-central1'
 
 TODAY=$(date +"%Y-%m-%d")
-LOG_FILE="deletions-$TODAY.csv"
+LOG_FILE="deletions-$TODAY-$LOG_SUFFIX.csv"
 
 for proj in `gcloud projects list --format='table(NAME)[no-heading]'`
     do
