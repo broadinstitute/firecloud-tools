@@ -65,12 +65,14 @@ if [ ! -d ~/.firecloud-env.config ]; then
                             project="fc-env-$(date +%H-%M-%S)-$(gcloud config get-value account | sed 's/@.*//')"
                             echo
                             gcloud projects create $project
+                            echo
                             echo "Linking project to your billing account..."
+                            echo
                             gcloud alpha billing accounts projects link $project --billing-account=$account
                             sleep 10s
                             echo
                             echo "Project created and can be viewed at: https://console.cloud.google.com/home/dashboard?project=$project"
-
+                            echo
                             break;;                        
                             
                        [Nn]* ) 
@@ -95,9 +97,13 @@ if [ ! -d ~/.firecloud-env.config ]; then
     
     #create bucket
     bucket=$project-executions
+    echo
     echo "gs://$bucket"
+    echo
     gsutil mb -p $project gs://$bucket
+    echo
     echo "Bucket created for Cromwell execution outputs can be viewed at: https://console.cloud.google.com/storage/browser/$bucket"
+    echo
     #TODO: ask for dockerhub credentials if they are going to use private dockers
 
     #Create config
@@ -147,7 +153,7 @@ backend {
         }
 
         genomics {
-          // A reference to an auth defined in the `google` stanza at the top.  This auth is used to create
+          // A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create
           // Pipelines and manipulate auth JSONs.
           auth = \"application-default\"
           // Endpoint for APIs, no reason to change this unless directed by Google.
@@ -173,10 +179,7 @@ backend {
         #enable APIs, or not
         case $yn in
             [Yy]* ) 
-                #TODO list configu, store current project that user is authenticated with, change project to enable APIs, then undo after 
-                #gcloud config list
-                #gcloud config set project $project
-                gcloud services enable compute.googleapis.com genomics.googleapis.com storage-component.googleapis.com
+                gcloud --project $project services enable compute.googleapis.com genomics.googleapis.com storage-component.googleapis.com
                 break;;
 
             [Nn]* )
@@ -189,7 +192,9 @@ backend {
         #enable APIs, or not
         esac 
     done
+    echo
     while read -p "Do you want to run a Hello WDL test to check your configuration? (yes or no)" yn; do
+        test_configuration="java -Dconfig.file=google.conf -jar cromwell.jar run hello.wdl -i hello.inputs"
         #Test configuration
         case $yn in
             [Yy]* ) 
@@ -197,7 +202,7 @@ backend {
                 echo "task hello {
   String addressee  
   command {
-    echo \"Hello ${addressee}! Welcome to Cromwell . . . on Google Cloud!\"  
+    echo \"Hello \${addressee}! Welcome to Cromwell . . . on Google Cloud!\"  
   }
   output {
     String message = read_string(stdout())
@@ -222,9 +227,23 @@ workflow wf_hello {
 }
 " > hello.inputs
 
-                #TODO: download Cromwell
+                cromwell=$(curl -i https://api.github.com/repos/broadinstitute/cromwell/releases/latest | grep browser_download_url | grep -e "/cromwell-" | sed 's/"browser_download_url": "//; s/ //g; s/"//')
 
+                if [[ $cromwell != https://github.com/broadinstitute/cromwell/releases/download/* ]]; then
+                    echo
+                    echo "We cannot find the latest version of Cromwell to download."
+                    echo "Visit https://github.com/broadinstitue/cromwell/releases to download the latest version"
+                    echo "to this directory. Then run $ $test_configuration"
+                    echo 
+                    echo "Exiting."
+                    exit 1
+                fi
 
+                #Download that version
+                curl -L $cromwell --output cromwell.jar
+                echo
+                echo "Cromwell is downloaded and ready for operation."
+                echo
                 break;;
 
             [Nn]* )
@@ -235,10 +254,17 @@ workflow wf_hello {
             * ) echo "Please answer yes or no.";;
         #Test configuration
         esac 
-    done    
+    done
+    echo
+    echo "Starting Hello World test."
+    echo
+    echo "Running $ $test_configuration"
+    echo
+    #Test setup
+    bash -c "$test_configuration"    
+    echo "Outputs for this workflow can be found in $bucket ."
 
 else
     echo "Setup has already been done.  If you would like to clear this setup and create"
     echo "a new one, you can remove the file ~/.firecloud-env.config"
 fi) && gcloud config set component_manager/disable_update_check false
-
