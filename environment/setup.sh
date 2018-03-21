@@ -2,7 +2,7 @@ set -e
 gcloud config set component_manager/disable_update_check true
 (cd "$(dirname "$0")"
 # only do the setup if it has not already been done
-if [ ! -d ~/.firecloud-env.config ]; then
+if [ ! ~/.firecloud-env.config ]; then
     #TODO: if they have multiple identities ask if they are using the right one
     #Check if gcloud is installed 
     if gcloud version | grep -q "gcloud: command not found"; then
@@ -27,7 +27,6 @@ if [ ! -d ~/.firecloud-env.config ]; then
             esac 
         done                                  
     fi
-    echo
     echo
     while read -p "Do you have an existing Google project where you want to run workflows? (yes or no) " yn; do
         #Which Google project to use (new or existing) 
@@ -169,9 +168,9 @@ backend {
       }
     }
   }
-}   " > google.conf
+}   " > firecloud-env.config
     echo
-    echo "Your configuration file is ready! It is stored in google.conf."
+    echo "Your configuration file is ready! It is stored in firecloud-env.config."
     echo
     echo "To use this configuration you will need to enable the following APIs:"
     echo "Google Cloud Storage, Google Compute Engine, Google Genomics."
@@ -194,7 +193,7 @@ backend {
     done
     echo
     while read -p "Do you want to run a Hello WDL test to check your configuration? (yes or no)" yn; do
-        test_configuration="java -Dconfig.file=google.conf -jar cromwell.jar run hello.wdl -i hello.inputs"
+        test_configuration="java -Dconfig.file=firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
         #Test configuration
         case $yn in
             [Yy]* ) 
@@ -262,7 +261,11 @@ workflow wf_hello {
     echo
     #Test setup
     bash -c "$test_configuration"    
-    echo "Outputs for this workflow can be found in $bucket ."
+    echo
+    echo "Workflow succeeded!"
+    echo "Outputs for this workflow can be found in gs://$bucket"
+    echo
+    echo "Now run the cromwell.sh script to automatically use "
 
 else
     echo "Setup has already been done.  If you would like to clear this setup and create"
