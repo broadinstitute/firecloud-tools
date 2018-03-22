@@ -5,4 +5,4 @@ In order to run this script you will need to download the credentials JSON file 
 
 Usage (from the main directory where run.sh resides):
 
-```./run.sh register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account>```
+```./run.sh scripts/register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account>```

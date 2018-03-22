@@ -10,6 +10,7 @@ To run a giving script using Docker:
 ## Prerequisites
 * Install the Google Cloud SDK from https://cloud.google.com/sdk/downloads
 * Set the Application Default Credentials (run `gcloud auth application-default login`)
+* Python 2.7
 
 When running without the run script or docker, check the packages that are pip
 installed in either run.sh or the Dockerfile.
