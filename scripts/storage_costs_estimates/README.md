@@ -3,7 +3,9 @@ This script will display the estimated storage costs for a single workspace or a
 
 Usage:
 
-* All workspaces in a project:   ./run.sh scripts/storage_costs_estimates/storage_costs_estimates.py -p \<firecloud billing project name\>
-* A single workspace:            ./run.sh scripts/storage_costs_estimates/storage_costs_estimates.py -p \<firecloud billing project name\> -n \<workspace name\>
+* All workspaces in a project:
+   ./run.sh scripts/storage_costs_estimates/storage_costs_estimates.py -p \<firecloud billing project name\>
+* A single workspace:      
+   ./run.sh scripts/storage_costs_estimates/storage_costs_estimates.py -p \<firecloud billing project name\> -n \<workspace name\>
 
-You can find the FireCloud billing project name here: https://portal.firecloud.org/#billing 
+You can find the [FireCloud billing project name here](https://portal.firecloud.org/#billing) and the [workspace name here](https://portal.firecloud.org/#workspaces).
