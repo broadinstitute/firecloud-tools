@@ -3,9 +3,9 @@ This script will provide a cost breakdown for either (a) all workflows in all su
 
 Usage:
 
-* All submissions in a workspace: ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\>
-* All workflows in a submission:  ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\>
-* A single workflow:            ./run.sh bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\> -w \<workflow id\>
+* All submissions in a workspace: ./run.sh scripts/bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\>
+* All workflows in a submission:  ./run.sh scripts/bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\>
+* A single workflow:            ./run.sh scripts/bigquery_billing_report/bigquery_billing_report.py -p \<firecloud billing project name\> -n \<workspace name\> -s \<submission id\> -w \<workflow id\>
 
 
 * For Big Query datasets not exported to the firecloud billing project:
