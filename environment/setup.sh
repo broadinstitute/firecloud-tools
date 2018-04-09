@@ -2,7 +2,14 @@ set -e
 gcloud config set component_manager/disable_update_check true
 (cd "$(dirname "$0")"
 # only do the setup if it has not already been done
-if [ ! -d ~/.firecloud-env.config ]; then
+if [ ! ~/.firecloud-env.config ]; then
+    echo
+    echo "Hello and welcome! This script is for users who want to run their WDL scripts "
+    echo "on Google Cloud using the Cromwell engine. This script will walk you through the"
+    echo "steps for setting up your configuration file, and then it will test your configuration "
+    echo "with a short workflow."
+    echo
+    echo "Ready? Let's get started."
     #TODO: if they have multiple identities ask if they are using the right one
     #Check if gcloud is installed 
     if gcloud version | grep -q "gcloud: command not found"; then
@@ -31,10 +38,10 @@ if [ ! -d ~/.firecloud-env.config ]; then
     while read -p "Do you have an existing Google project where you want to run workflows? (yes or no) " yn; do
         #Which Google project to use (new or existing) 
         case $yn in
-            [Yy]* ) read -p "Enter your project name: " project; break;;
+            [Yy]* ) read -p "Enter your Google project name: " project; break;;
             [Nn]* ) 
                 echo
-                echo "If you do not have a project you want to use, a new one will be generated for you."
+                echo "If you do not have a Google project you want to use, this script will generate a new one for you."
                 while read -p "Would you like to continue? (yes or no) " yn; do
                     #Continue and create new project, or not
                     case $yn in
@@ -42,14 +49,14 @@ if [ ! -d ~/.firecloud-env.config ]; then
                             
                             echo
                             echo
-                            echo "You have access to the following billing accounts."
+                            echo "You have access to the following Google billing accounts:"
                             echo "--------------------------------------------------------------------------------"
                             gcloud alpha billing accounts list
                             accounts=$(gcloud alpha billing accounts list 2>&1)
                             if echo $accounts | grep -q "Listed 0 items"; then 
                                 echo
-                                echo "You do not have a Google billing account setup.  In order to run "
-                                echo "WDLs in the Google cloud you need an account to bill to.  See the README "
+                                echo "You do not have a Google billing account set up. In order to run "
+                                echo "WDLs in the Google cloud you need an account to bill to. See the README "
                                 echo "for more details."
                                 echo "To learn about creating a billing account, see here: "
                                 echo "https://cloud.google.com/billing/docs/how-to/manage-billing-account#create_a_new_billing_account"
@@ -58,8 +65,8 @@ if [ ! -d ~/.firecloud-env.config ]; then
                             
                             echo 
                             echo
-                            echo "Enter the billing account ID to use for this project" 
-                            read -p "    (IDs will look similar to this: 002481-B7351F-CD111E):" account
+                            echo "Enter the ID of the billing account you want to use for this Google project" 
+                            read -p "(IDs will look similar to this: 002481-B7351F-CD111E):" account
                             #gcloud projects create
                             project="fc-env-$(date +%H-%M-%S)-$(gcloud config get-value account | sed 's/@.*//')"
                             echo
@@ -70,7 +77,8 @@ if [ ! -d ~/.firecloud-env.config ]; then
                             gcloud alpha billing accounts projects link $project --billing-account=$account
                             sleep 10s
                             echo
-                            echo "Project created and can be viewed at: https://console.cloud.google.com/home/dashboard?project=$project"
+                            echo "Project created successfully."
+                            echo "View your new project at: https://console.cloud.google.com/home/dashboard?project=$project"
                             echo
                             break;;                        
                             
@@ -97,7 +105,7 @@ if [ ! -d ~/.firecloud-env.config ]; then
     #create bucket
     bucket=$project-executions
     echo
-    echo "gs://$bucket"
+    echo "Your bucket will be located at gs://$bucket"
     echo
     gsutil mb -p $project gs://$bucket
     echo
@@ -265,9 +273,12 @@ workflow wf_hello {
     echo "Workflow succeeded!"
     echo "Outputs for this workflow can be found in gs://$bucket"
     echo
-    echo "Now run the cromwell.sh script to automatically use "
+    echo "Now run the cromwell.sh script to automatically use your new configuration"
+    echo "for running your WDLs on Google Cloud."
+    echo
 
 else
-    echo "Setup has already been done.  If you would like to clear this setup and create"
-    echo "a new one, you can remove the file ~/.firecloud-env.config"
+    echo "Setup has already been done. If you would like to clear this setup and create"
+    echo "a new one, remove the file ~/.firecloud-env.config"
+    echo "Exiting."
 fi) && gcloud config set component_manager/disable_update_check false
