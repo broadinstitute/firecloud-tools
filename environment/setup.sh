@@ -2,7 +2,7 @@ set -e
 gcloud config set component_manager/disable_update_check true
 (cd "$(dirname "$0")"
 # only do the setup if it has not already been done
-if [ ! ~/.firecloud-env.config ]; then
+if [ ! -d ~/.firecloud-env.config ]; then
     #TODO: if they have multiple identities ask if they are using the right one
     #Check if gcloud is installed 
     if gcloud version | grep -q "gcloud: command not found"; then
