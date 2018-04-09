@@ -2,7 +2,7 @@ set -e
 gcloud config set component_manager/disable_update_check true
 (cd "$(dirname "$0")"
 # only do the setup if it has not already been done
-if [ ! ~/.firecloud-env.config ]; then
+if [ ! -f ~/.firecloud-env.config ]; then
     echo
     echo "Hello and welcome! This script is for users who want to run their WDL scripts "
     echo "on Google Cloud using the Cromwell engine. This script will walk you through the"
@@ -176,9 +176,9 @@ backend {
       }
     }
   }
-}   " > firecloud-env.config
+}   " > ~/.firecloud-env.config
     echo
-    echo "Your configuration file is ready! It is stored in firecloud-env.config."
+    echo "Your configuration file is ready! It is stored in ~/.firecloud-env.config."
     echo
     echo "To use this configuration you will need to enable the following APIs:"
     echo "Google Cloud Storage, Google Compute Engine, Google Genomics."
@@ -201,7 +201,7 @@ backend {
     done
     echo
     while read -p "Do you want to run a Hello WDL test to check your configuration? (yes or no)" yn; do
-        test_configuration="java -Dconfig.file=firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
+        test_configuration="java -Dconfig.file=~/.firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
         #Test configuration
         case $yn in
             [Yy]* ) 
@@ -278,7 +278,9 @@ workflow wf_hello {
     echo
 
 else
-    echo "Setup has already been done. If you would like to clear this setup and create"
-    echo "a new one, remove the file ~/.firecloud-env.config"
+    echo
+    echo "You already have a Cromwell configuration file. If you would like to clear this setup and create"
+    echo "a new file, remove (or rename) the hidden file ~/.firecloud-env.config"
+    echo
     echo "Exiting."
 fi) && gcloud config set component_manager/disable_update_check false
