@@ -67,7 +67,6 @@ if [ ! -f ~/.firecloud-env.config ]; then
                             echo
                             echo "Enter the ID of the billing account you want to use for this Google project" 
                             read -p "    (IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E):" account
-                            #gcloud projects create
                             project="fc-env-$(date +%H-%M-%S)-$(gcloud config get-value account | sed 's/@.*//')"
                             echo
                             gcloud projects create $project
@@ -189,6 +188,7 @@ backend {
                 break;;
 
             [Nn]* )
+                echo
                 echo "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
                 echo "Exiting."
                 exit 1 
