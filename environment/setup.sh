@@ -66,7 +66,7 @@ if [ ! -f ~/.firecloud-env.config ]; then
                             echo 
                             echo
                             echo "Enter the ID of the billing account you want to use for this Google project" 
-                            read -p "(IDs will look similar to this: 002481-B7351F-CD111E):" account
+                            read -p "    (IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E):" account
                             #gcloud projects create
                             project="fc-env-$(date +%H-%M-%S)-$(gcloud config get-value account | sed 's/@.*//')"
                             echo
@@ -74,7 +74,7 @@ if [ ! -f ~/.firecloud-env.config ]; then
                             echo
                             echo "Linking project to your billing account..."
                             echo
-                            gcloud alpha billing accounts projects link $project --billing-account=$account
+                            gcloud alpha billing projects link $project --billing-account=$account
                             sleep 10s
                             echo
                             echo "Project created successfully."
@@ -110,7 +110,6 @@ if [ ! -f ~/.firecloud-env.config ]; then
     gsutil mb -p $project gs://$bucket
     echo
     echo "Bucket created for Cromwell execution outputs can be viewed at: https://console.cloud.google.com/storage/browser/$bucket"
-    echo
     #TODO: ask for dockerhub credentials if they are going to use private dockers
 
     #Create config
@@ -201,7 +200,7 @@ backend {
     done
     echo
     while read -p "Do you want to run a Hello WDL test to check your configuration? (yes or no)" yn; do
-        test_configuration="java -Dconfig.file=~/.firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
+        test_configuration="java -Dconfig.file=$HOME/.firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
         #Test configuration
         case $yn in
             [Yy]* ) 
