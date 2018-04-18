@@ -47,33 +47,30 @@ def sdk_install_check():
 	# If gcloud SDK is not installed, install it.
 	#TODO prints the gcloud version response; how to put it into the standard out/error/something else
 	if os.system('gcloud version') is not 0:
-		print "\nYou do not have Google Cloud SDK installed, which you need to run this script."
 		
 		# Ask if user wants to install the SDK
-		installSdk = raw_input('Do you want to install gcloud SDK? (yes or no)').lower()
+		installSdk = raw_input('\nYou do not have Google Cloud SDK installed, which you need to run this script.\nDo you want to install gcloud SDK? (yes or no)').lower()
 		
-		while True:
-			# User chooses to install
-			if installSdk.startswith("y"):
-				os.system('curl https://sdk.cloud.google.com | bash')
-				shell = os.path.expanduser("$SHELL")
-				#TODO what does next line do? Need to create new shell to start using gcloud
-				os.system('exec -l' + shell) 
-				#TODO fix errors, isn't installing glcoud properly
-				os.system('gcloud init')
-				break
+		while not (installSdk.startswith("y") or installSdk.startswith("n")):
+			installSdk = raw_input('\nPlease answer yes or no: ').lower()
 			
-			# User chooses not to install SDK, exit the script because they can't continue.
-			elif installSdk.startswith("n"):
-				sys.exit("Exiting.")
-			
-			# User didn't choose a word beginning with 'y' or 'n'.
-			else: 
-				print "Please answer yes or no."
+		# User chooses to install
+		if installSdk.startswith("y"):
+			os.system('curl https://sdk.cloud.google.com | bash')
+			shell = os.path.expanduser("$SHELL")
+			#TODO what does next line do? Need to create new shell to start using gcloud
+			os.system('exec -l' + shell) 
+			#TODO fix errors, isn't installing glcoud properly
+			os.system('gcloud init')
+			return
+		
+		# User chooses not to install SDK, exit the script because they can't continue.
+		elif installSdk.startswith("n"):
+			sys.exit("Exiting.")
 	
 	# Gcloud SDK is already installed, and user can continue with setup
 	else:
-		print "You have Google Cloud SDK installed."
+		print "\nYou have Google Cloud SDK installed."
 		return
 
 # Which Google Project to use (new or existing)
@@ -81,39 +78,42 @@ def which_google_project():
 
 	existing_project = raw_input('\nDo you have an existing Google project where you want to run workflows? (yes or no) ').lower()
 
-	while not (existing_project.startswith == "y" or existing_project.startswith == "n"):	
-	# Check if user wants to use existing project
-		existing_project = raw_input('\nPlease answer yes or no.').lower()
+	while not (existing_project.startswith("y") or existing_project.startswith("n")):	
+		existing_project = raw_input('\nPlease answer yes or no: ').lower()
 		
 	# User has existing project
 	if existing_project.startswith("y"):
-		project = raw_input('\nEnter your Google project name: ')
-		print "project " + project
+		name = raw_input('\nEnter your Google project name: ')
+		print "Project" + name
 
 	# User doesn't have existing project
 	elif existing_project.startswith("n"):
-		print "If you do not have a Google project you want to use, this script will generate a new one for you."
+		print "\nIf you do not have a Google project you want to use, this script will generate a new one for you."
 		create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
 
-			# while True:
-			# 	if not create_new_project.startswith("y") or create_new_project.startswith("n"):
-			# 		"Please answer yes or no."
+		while not (create_new_project.startswith("y") or create_new_project.startswith("n")):
+			create_new_project = raw_input('\nPlease answer yes or no. ').lower()
 
-			# 	# Create new project
-			#TODO 	elif create_new_project.startswith("y"):
-			# 		name = raw_input("What do you want to call your project?")
-			#		create_google_project(name)
-			# 		break
+		# Create new project
+		if create_new_project.startswith("y"):
+			find_billing_accounts()
+			# billing_acct = raw_input("\nYou have access to the following Google billing accounts:\n--------------------------------------------------------------------------------\n ")
+			name = raw_input("What do you want to call your project? ")
+			create_google_project(name)
 
-			# 	# Don't create project, and exit
-			# 	elif create_new_project.startswith("n"):
-			# 		sys.exit("Exiting.")
-			# 		break
+		# Don't create project, and exit
+		elif create_new_project.startswith("n"):
+			sys.exit("Exiting.")
+			return
+
 
 #TODO Create a google project for the user
 def create_google_project(name):
+	print "Create project \"" + name + "\" function TBC" 
 
-
+#TODO Search for user's billing accounts
+def find_billing_accounts():
+	print "Billing accounts!"
 
 
 if __name__ == "__main__":
