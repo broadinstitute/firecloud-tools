@@ -7,7 +7,7 @@ To run this script:
 
 <!--To run using Docker:
 ```
-docker run --rm -it -v "$HOME"/.config:/.config broadinstitute/firecloud-tools python /environment/setup.py
+docker run \-\-rm -it -v "$HOME"/.config:/.config broadinstitute/firecloud-tools python /environment/setup.py
 ```-->
 
 ## Prerequisites
