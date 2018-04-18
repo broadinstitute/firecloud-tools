@@ -79,32 +79,30 @@ def sdk_install_check():
 # Which Google Project to use (new or existing)
 def which_google_project():
 
-	while True:	
+	existing_project = raw_input('\nDo you have an existing Google project where you want to run workflows? (yes or no) ').lower()
+
+	while not (existing_project.startswith == "y" or existing_project.startswith == "n"):	
 	# Check if user wants to use existing project
-	#TODO way to only print out the following statement once, even if a user doesn't respond with y/n (currently it loops on this statement too)
-		existing_project = raw_input('\nDo you have an existing Google project where you want to run workflows? (yes or no) ').lower()
-
+		existing_project = raw_input('\nPlease answer yes or no.').lower()
 		
-		# User has existing project
-		if existing_project.startswith("y"):
-			project = raw_input('\nEnter your Google project name: ')
-			print "project " + project
-			return False
+	# User has existing project
+	if existing_project.startswith("y"):
+		project = raw_input('\nEnter your Google project name: ')
+		print "project " + project
 
-		# User doesn't have existing project
-		elif existing_project.startswith("n"):
-			print "If you do not have a Google project you want to use, this script will generate a new one for you."
-			create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
-			return False
+	# User doesn't have existing project
+	elif existing_project.startswith("n"):
+		print "If you do not have a Google project you want to use, this script will generate a new one for you."
+		create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
 
 			# while True:
 			# 	if not create_new_project.startswith("y") or create_new_project.startswith("n"):
 			# 		"Please answer yes or no."
 
 			# 	# Create new project
-			# 	elif create_new_project.startswith("y"):
-			# 		# Create project
-			# 		print "create new project"
+			#TODO 	elif create_new_project.startswith("y"):
+			# 		name = raw_input("What do you want to call your project?")
+			#		create_google_project(name)
 			# 		break
 
 			# 	# Don't create project, and exit
@@ -112,8 +110,10 @@ def which_google_project():
 			# 		sys.exit("Exiting.")
 			# 		break
 
-		else:
-			print "Please answer yes or no."
+#TODO Create a google project for the user
+def create_google_project(name):
+
+
 
 
 if __name__ == "__main__":
