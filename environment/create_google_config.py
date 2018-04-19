@@ -84,7 +84,7 @@ def which_google_project():
 
 	# User doesn't have existing project
 	elif existing_project.startswith("n"):
-		print "\nIf you do not have a Google project you want to use, this script will generate a new one for you."
+		print "\nIf you do not have a Google project you want to use, this script will generate a new one\nfor you."
 		create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
 
 		while not (create_new_project.startswith("y") or create_new_project.startswith("n")):
@@ -127,20 +127,25 @@ def find_billing_accounts():
         request = billing_accounts.list_next(request, response)
 
     if len(billing_accounts_list) == 0:
-    	# array is empty, print out no billing accounts error
-    	pass
+    	# User does not have access to any billing accounts
+    	print "You do not have a Google billing account set up. In order to run\nWDLs in the Google cloud you need an account to bill to. See the README\nfor more details.\nTo learn about creating a billing account, see here: \nhttps://cloud.google.com/billing/docs/how-to/manage-billing-account#create_a_new_billing_account"
+        sys.exit("Exiting.")
 
     else:
-    	#TODO tell people we are printing out list of billing accounts that user has access to
+    	print "\nYou have access to the following Google billing accounts: "
     	
     	# Setup table
     	headers = "Billing Account ID\tBilling Account Name"
     	print headers
-    	print '-' * len(headers.expandtabs) 
+    	print '-' * len(headers.expandtabs()) 
 
     	# Iterate and print every billing account 
     	for billing_acct in billing_accounts_list:
     		print "%s\t%s" % (billing_acct["name"].replace("billingAccounts/",""), billing_acct["displayName"])
+
+    	print "Enter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
+    	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
+    	billing_account_ID = raw_input("\t(IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E): ")
 
 
 #TODO Create a google project for the user
