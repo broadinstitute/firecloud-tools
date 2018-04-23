@@ -11,7 +11,6 @@ import json
 # import datetime
 import datetime, time
 
-
 # Google setup
 credentials = GoogleCredentials.get_application_default()
 # build a cloud billing API service
@@ -22,16 +21,18 @@ crm = build('cloudresourcemanager', 'v1', credentials=credentials)
 storage_client = storage.Client()
 
 # Global variables
-def definition():
-	global project_name
-	global bucket_name
-	project_name = ""
-	bucket_name = ""
+# def definition():
+# 	global project_name
+# 	global bucket_name
+# 	project_name = "my_project"
+# 	bucket_name = "my_bucket"
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
-def main():
+def main():#project_name, bucket_name
 	
+	# project_name = project_name
+	# bucket_name = bucket_name
 	# Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
 	google_config_check()
 
@@ -44,7 +45,7 @@ def main():
 	which_google_project()
 
 	# Create config
-	create_config(project_name, bucket_name)
+	create_config()#project_name, bucket_name
 	
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
@@ -203,7 +204,9 @@ def create_google_bucket(project_name):
 
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
-def create_config(project_name, bucket_name):
+def create_config():#project_name, bucket_name
+	# project_name = project_name 
+	# bucket_name = bucket_name
 	config = open("cromwell_on_google.config","w+")
 	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
 	config.write(config_contents)
@@ -211,5 +214,5 @@ def create_config(project_name, bucket_name):
 
 
 if __name__ == "__main__":
-    definition()
-    main()
+    # definition()
+    main()#project_name, bucket_name
