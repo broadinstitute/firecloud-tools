@@ -5,11 +5,11 @@ from apiclient.discovery import build
 from oauth2client.client import GoogleCredentials
 import google.auth
 from subprocess import check_output
-from google.cloud import resource_manager
+from google.cloud import resource_manager, storage
 import json
 
 # import datetime
-import datetime
+import datetime, time
 
 
 # Google setup
@@ -18,7 +18,15 @@ credentials = GoogleCredentials.get_application_default()
 billing = build('cloudbilling', 'v1', credentials=credentials)
 # build a cloud resource manager API service
 crm = build('cloudresourcemanager', 'v1', credentials=credentials)
+# Create storage client
+storage_client = storage.Client()
 
+# Global variables
+def definition():
+	global project_name
+	global bucket_name
+	project_name = ""
+	bucket_name = ""
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
@@ -34,6 +42,9 @@ def main():
 
 	# Select Google project (new or existing)
 	which_google_project()
+
+	# Create config
+	create_config(project_name, bucket_name)
 	
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
@@ -88,9 +99,9 @@ def which_google_project():
 		
 	# User has existing project
 	if existing_project.startswith("y"):
-		name = raw_input('\nEnter your Google project name: ')
-		print "Project" + name
-		#TODO
+		project_name = raw_input('\nEnter your Google project name: ')
+		create_google_bucket(project_name)
+		return project_name
 
 	# User doesn't have existing project
 	elif existing_project.startswith("n"):
@@ -167,22 +178,38 @@ def create_google_project(project_name, billing_account_id):
 	print "Creating Google project..."
 	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
-
+	#TODO check if sleep is necessary, decrease time
+	time.sleep(10) 
 	# Link new project to billing account
 	print "Linking project to your billing account..."
 	enable_billing_account(billing_account_id, project_name)
+	return project_name
 
 # Link the newly created Google project to the user's chosen billing account
 def enable_billing_account(billing_account_id, project_name):
-	body = {'project_id': '%s' % project_name, 'billingAccountName': '%s' % billing_account_id, 'billingEnabled': True}
-	#print body
-	params = {'name': 'projects/%s' % project_name, 'body': body}
-	#print params
+	body = {"project_id": "%s" % project_name, "billing_account_name": "billingAccounts/%s" % billing_account_id, "billing_enabled": "True"}
+	params = {"name": "projects/%s" % project_name, "body": body}
+	
+	# Enable billing account
 	billing.projects().updateBillingInfo(**params).execute()
+	print "Project created successfully. View your new project at: https://console.cloud.google.com/home/dashboard?project=%s" % project_name
+	create_google_bucket(project_name)
 
-	params = {'name': 'projects/cromwell-kvoss-17-09', 'body': {'project_id': 'cromwell-kvoss-17-09', 'billingAccountName': '0028B7-4F7D57-2D0E40', 'billingEnabled': True, 'name': 'projects/cromwell-kvoss-17-09/billingInfo'}}
+def create_google_bucket(project_name):
+	bucket_name = "%s" % project_name + "-executions-" + datetime.datetime.now().strftime("%M")
+	storage_client.create_bucket(bucket_name)
+	print "Bucket created for Cromwell outputs can be viewed at: https://console.cloud.google.com/storage/browser/%s" % bucket_name
+	return bucket_name
 
+#TODO: ask for dockerhub credentials if they are going to use private dockers
+
+def create_config(project_name, bucket_name):
+	config = open("cromwell_on_google.config","w+")
+	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
+	config.write(config_contents)
+	config.close()
 
 
 if __name__ == "__main__":
+    definition()
     main()
