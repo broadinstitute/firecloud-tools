@@ -3,12 +3,14 @@ import sys, os
 from apiclient.discovery import build
 # import GoogleCredentials
 from oauth2client.client import GoogleCredentials
-# import datetime
-import datetime
 import google.auth
 from subprocess import check_output
 from google.cloud import resource_manager
 import json
+
+# import datetime
+import datetime
+
 
 # Google setup
 credentials = GoogleCredentials.get_application_default()
@@ -101,15 +103,12 @@ def which_google_project():
 		# Create new project
 		if create_new_project.startswith("y"):
 			find_billing_accounts()
-			name = raw_input("What do you want to call your project? ")
-			create_google_project(name)
+			# Which later creates the google project
 
 		# Don't create project, and exit
 		elif create_new_project.startswith("n"):
 			sys.exit("Exiting.")
 			return
-
-
 
 
 # Search for user's billing accounts
@@ -153,30 +152,37 @@ def find_billing_accounts():
 
     	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
     	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
-    	billing_account_ID = raw_input("(IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E): ")
-    	print "You have selected this Billing Account: %s" % billing_account_ID
+    	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E): ")
+    	print "You have selected this Billing Account: %s" % billing_account_id
 
     	# Project name with datetime stamp and user's email address
-    	project_name = "cromwell_on_google-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-datetime_%m_%d_%H_%M")
-    	create_google_project(project_name, billing_account_ID)
+    	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
+    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%H-%M")
+    	create_google_project(project_name, billing_account_id)
 
 
-#TODO Create a google project for the user
-def create_google_project(project_name, billing_account_ID):
+# Create a google project for the user
+def create_google_project(project_name, billing_account_id):
 	# Create google project
-	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name}
-	print body
+	print "Creating Google project..."
+	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
 
+	# Link new project to billing account
+	print "Linking project to your billing account..."
+	enable_billing_account(billing_account_id, project_name)
 
-	# # Link new project to billing account
-	# print "Linking project to your billing account..."
+# Link the newly created Google project to the user's chosen billing account
+def enable_billing_account(billing_account_id, project_name):
+	body = {'project_id': '%s' % project_name, 'billingAccountName': '%s' % billing_account_id, 'billingEnabled': True}
+	#print body
+	params = {'name': 'projects/%s' % project_name, 'body': body}
+	#print params
+	billing.projects().updateBillingInfo(**params).execute()
+
+	params = {'name': 'projects/cromwell-kvoss-17-09', 'body': {'project_id': 'cromwell-kvoss-17-09', 'billingAccountName': '0028B7-4F7D57-2D0E40', 'billingEnabled': True, 'name': 'projects/cromwell-kvoss-17-09/billingInfo'}}
+
 
 
 if __name__ == "__main__":
     main()
-
-# varname = """
-# File contents here, escaped properly
-
-# """
