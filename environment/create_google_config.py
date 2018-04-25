@@ -33,8 +33,9 @@ bucket_name = ""
 
 def main():#project_name, bucket_name
 	
+	#TODO: re-enable check for whether there is an existing configuration
 	# Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
-	google_config_check()
+	#google_config_check()
 
 	print "\nHello and welcome! This script is for users who want to run their WDL scripts\non Google Cloud using the Cromwell engine. This script will walk you through\nthe steps for setting up your configuration file, and then it will test your\nconfiguration with a short workflow.\n\nReady? Let's get started.\n"
 
@@ -202,7 +203,7 @@ def create_google_bucket(project_name):
 	#TODO: change bucket name to not include datetime
 	#TODO: handle exception if existing bucket
 	global bucket_name
-	bucket_name = "%s" % project_name + "-executions-" + datetime.datetime.now().strftime("%M")
+	bucket_name = "%s" % project_name + "-executions-" + datetime.datetime.now().strftime("%H-%M")
 	storage_client.create_bucket(bucket_name)
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 	return bucket_name
@@ -220,10 +221,10 @@ def create_config():
 	config.write(config_contents)
 	config.close()
 	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
-	run_cromwell_test()
+	start_cromwell_test()
     
 
-def run_cromwell_test():
+def start_cromwell_test():
 	print "\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
 	enable_apis = raw_input('\nWould you like to enable these APIs now? (yes or no) ').lower()
 	
@@ -233,18 +234,27 @@ def run_cromwell_test():
 	# Enable APIs
 	if enable_apis.startswith("y"):
 		print "\nEnabling APIs..."
-		# serviceName = "genomics.googleapis.com"
-		# body = {"consumerId": "project:%s" % project_name}
-		# params = {"serviceName": "%s" % serviceName, "body": body}
-		#params = {"serviceName": "genomics.googleapis.com", "body": {"consumerId": "project:kvoss-workbench"}}
-		# print params
-		# smgt.services().enable(**params).execute()
 		serviceList = ["compute.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for serviceName in serviceList:
 			enable_services(serviceName)
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
+		
+		# Continue with testing configuration
+		continue_test = raw_input('\nDo you want to run a Hello WDL test to check your configuration? (yes or no) ')
+			
+		while not (continue_test.startswith("y") or continue_test.startswith("n")):
+			continue_test = raw_input('\nPlease answer yes or no: ').lower()
 
-	# Don't create project, and exit
+		if continue_test.startswith("y"):
+			hello_test()
+
+		elif continue_test.startswith("n"):
+			sys.exit("Exiting.")
+			return
+
+        #test_configuration = "java -Dconfig.file=$HOME/.firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
+
+	# Don't enable APIs, and exit
 	elif enable_apis.startswith("n"):
 		print "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
 		sys.exit("Exiting.")
@@ -255,6 +265,26 @@ def enable_services(serviceName):
 	params = {"serviceName": "%s" % serviceName, "body": body}
 	# print params
 	smgt.services().enable(**params).execute()
+
+def hello_test():
+	# Create WDL
+	wdl_ex = open("hello.wdl","w+")
+	#TODO: make tabs smaller
+	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello \${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
+	wdl_ex.write(wdl_contents)
+	wdl_ex.close()
+	print "Your WDL file is ready! It is stored as hello.wdl."
+
+	# Create Inputs file
+	inputs_to_wdl = open("hello.inputs", "w+")
+	#TODO: make tabs smaller
+	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
+	inputs_to_wdl.write(inputs_contents)
+	inputs_to_wdl.close()
+	print "Your inputs file is ready! It is stored as inputs.wdl."
+
+	# Download latest Cromwell
+	
 
 
 if __name__ == "__main__":
