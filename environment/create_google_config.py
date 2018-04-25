@@ -19,20 +19,19 @@ billing = build('cloudbilling', 'v1', credentials=credentials)
 crm = build('cloudresourcemanager', 'v1', credentials=credentials)
 # Create storage client
 storage_client = storage.Client()
+# Create Service management API service
+smgt = build('servicemanagement', 'v1', credentials=credentials)
 
 # Global variables
-# def definition():
-# 	global project_name
-# 	global bucket_name
-# 	project_name = "my_project"
-# 	bucket_name = "my_bucket"
+project_name = ""
+bucket_name = ""
+
+#TODO: consider making the configuration a class, so that a user could create multiple configurations
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
 def main():#project_name, bucket_name
 	
-	# project_name = project_name
-	# bucket_name = bucket_name
 	# Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
 	google_config_check()
 
@@ -45,7 +44,7 @@ def main():#project_name, bucket_name
 	which_google_project()
 
 	# Create config
-	create_config()#project_name, bucket_name
+	create_config()
 	
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
@@ -100,6 +99,7 @@ def which_google_project():
 		
 	# User has existing project
 	if existing_project.startswith("y"):
+		global project_name
 		project_name = raw_input('\nEnter your Google project name: ')
 		create_google_bucket(project_name)
 		return project_name
@@ -169,7 +169,8 @@ def find_billing_accounts():
 
     	# Project name with datetime stamp and user's email address
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
-    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%H-%M")
+    	global project_name
+    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%H-%M-%S")
     	create_google_project(project_name, billing_account_id)
 
 
@@ -197,6 +198,9 @@ def enable_billing_account(billing_account_id, project_name):
 	create_google_bucket(project_name)
 
 def create_google_bucket(project_name):
+	#TODO: change bucket name to not include datetime
+	#TODO: handle exception if existing bucket
+	global bucket_name
 	bucket_name = "%s" % project_name + "-executions-" + datetime.datetime.now().strftime("%M")
 	storage_client.create_bucket(bucket_name)
 	print "Bucket created for Cromwell outputs can be viewed at: https://console.cloud.google.com/storage/browser/%s" % bucket_name
@@ -204,13 +208,49 @@ def create_google_bucket(project_name):
 
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
-def create_config():#project_name, bucket_name
-	# project_name = project_name 
-	# bucket_name = bucket_name
-	config = open("cromwell_on_google.config","w+")
+def create_config():
+	#TODO: clean up file open and write by using `with`
+	#TODO: make `home` a global variable to remove duplication from inital check for existing config file
+	home = os.path.expanduser("~")
+	config = open(home + "/.google_cromwell.config","w+")
+	#TODO: make tabs smaller
 	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
 	config.write(config_contents)
 	config.close()
+	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
+    
+
+def run_cromwell_test():
+    print "To use your new configuration you will need to enable the following APIs:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
+    enable_apis = raw_input("Would you like to enable these APIs now? (yes or no) ").lower()
+
+  #   while not (enable_apis.startswith("y") or enable_apis.startswith("n")):
+		# enable_apis = raw_input('\nPlease answer yes or no: ').lower()
+
+	# Create new project
+	if enable_apis.startswith("y"):
+		# serviceList = ["compute.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
+		# for serviceName in serviceList:
+		# 	enable_apis(serviceName)
+		#serviceName = "genomics.googleapis.com"
+		#body = {"consumerId": "project:%s" % project_name}
+		#body = {"consumerId": "project:cromwell-kvoss-13-26-20"}
+		#params = {"serviceName": "%s" % serviceName, "body": body}
+		params = {"serviceName": "compute.googleapis.com", "body": {"consumerId": "project:cromwell-kvoss-13-26-20"}}
+		print params
+		smgt.services().enable(**params).execute()
+
+	# Don't create project, and exit
+	elif enable_apis.startswith("n"):
+		print "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
+		sys.exit("Exiting.")
+		return
+
+# def enable_apis(serviceName):
+# 	body = {"consumerId": "project:%s" % project_name}
+# 	params = {"serviceName": "%s" % serviceName, "body": body}
+# 	print params
+# 	smgt.services().enable(**params).execute()
 
 
 if __name__ == "__main__":
