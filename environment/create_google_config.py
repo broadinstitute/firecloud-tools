@@ -7,6 +7,7 @@ import google.auth
 from subprocess import check_output
 from google.cloud import resource_manager, storage
 import json
+import urllib
 
 # import datetime
 import datetime, time
@@ -252,8 +253,6 @@ def start_cromwell_test():
 			sys.exit("Exiting.")
 			return
 
-        #test_configuration = "java -Dconfig.file=$HOME/.firecloud-env.config -jar cromwell.jar run hello.wdl -i hello.inputs"
-
 	# Don't enable APIs, and exit
 	elif enable_apis.startswith("n"):
 		print "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
@@ -268,6 +267,7 @@ def enable_services(serviceName):
 
 def hello_test():
 	# Create WDL
+	print "Creating WDL file..."
 	wdl_ex = open("hello.wdl","w+")
 	#TODO: make tabs smaller
 	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello \${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
@@ -276,6 +276,7 @@ def hello_test():
 	print "Your WDL file is ready! It is stored as hello.wdl."
 
 	# Create Inputs file
+	print "Creating inputs file..."
 	inputs_to_wdl = open("hello.inputs", "w+")
 	#TODO: make tabs smaller
 	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
@@ -284,7 +285,20 @@ def hello_test():
 	print "Your inputs file is ready! It is stored as inputs.wdl."
 
 	# Download latest Cromwell
-	
+	print "Downloading latest version of Cromwell execution engine..."
+	url = 'https://api.github.com/repos/broadinstitute/cromwell/releases/latest'  
+	urllib.urlretrieve(url, 'cromwell.jar')
+	#TODO: add error handling for if cromwell doesn't download
+	#TODO: make home global
+
+	# Run test
+	home = os.path.expanduser("~")
+	test_configuration = "java -Dconfig.file=" + home +"/.google_cromwell.config -jar cromwell.jar run hello.wdl -i hello.inputs"
+	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test.\n\nRunning $ %s" % test_configuration
+	os.system(test_configuration)
+
+	# Success
+	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\nNow run the <<[INSERT NEW SCRIPT]>> script to automatically use your new configuration\nfor running your WDLs on Google Cloud." % bucket_name
 
 
 if __name__ == "__main__":
