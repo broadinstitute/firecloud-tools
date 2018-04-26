@@ -6,11 +6,10 @@ from oauth2client.client import GoogleCredentials
 import google.auth
 from subprocess import check_output
 from google.cloud import resource_manager, storage
-import json
+import json, re
 import urllib
-
-# import datetime
 import datetime, time
+import requests
 
 # Google setup
 credentials = GoogleCredentials.get_application_default()
@@ -29,6 +28,7 @@ bucket_name = ""
 
 #TODO: take out the error messages, info prompts, etc and put into another file (import them here)
 #TODO: consider making the configuration a class, so that a user could create multiple configurations
+#TODO: add nice error message for if user does keyboard interrupt (command + C) at any point in the script. Is it possible to make the errors specific to where they are in the process? post-created project, post-config created, etc?
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
@@ -286,8 +286,10 @@ def hello_test():
 
 	# Download latest Cromwell
 	print "Downloading latest version of Cromwell execution engine..."
-	url = 'https://api.github.com/repos/broadinstitute/cromwell/releases/latest'  
-	urllib.urlretrieve(url, 'cromwell.jar')
+	result = requests.get('https://api.github.com/repos/broadinstitute/cromwell/releases/latest')
+	resp_dict = json.loads(result)
+	download_url = resp_dict['browser_download_url']
+
 	#TODO: add error handling for if cromwell doesn't download
 	#TODO: make home global
 
