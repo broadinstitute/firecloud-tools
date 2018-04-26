@@ -270,7 +270,7 @@ def hello_test():
 	print "Creating WDL file..."
 	wdl_ex = open("hello.wdl","w+")
 	#TODO: make tabs smaller
-	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello \${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
+	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello ${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
 	wdl_ex.write(wdl_contents)
 	wdl_ex.close()
 	print "Your WDL file is ready! It is stored as hello.wdl."
@@ -279,6 +279,7 @@ def hello_test():
 	print "Creating inputs file..."
 	inputs_to_wdl = open("hello.inputs", "w+")
 	#TODO: make tabs smaller
+	#TODO: check \ necessary?
 	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
 	inputs_to_wdl.write(inputs_contents)
 	inputs_to_wdl.close()
@@ -286,9 +287,13 @@ def hello_test():
 
 	# Download latest Cromwell
 	print "Downloading latest version of Cromwell execution engine..."
-	result = requests.get('https://api.github.com/repos/broadinstitute/cromwell/releases/latest')
-	resp_dict = json.loads(result)
-	download_url = resp_dict['browser_download_url']
+	r = requests.get('https://api.github.com/repos/broadinstitute/cromwell/releases/latest')
+	s = r.json()
+	t = json.dumps(s)
+	for asset in s["assets"]:
+		if "cromwell-" in asset["browser_download_url"]:
+			download_url = asset["browser_download_url"]
+			urllib.urlretrieve(download_url, "cromwell.jar")
 
 	#TODO: add error handling for if cromwell doesn't download
 	#TODO: make home global
