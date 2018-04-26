@@ -61,8 +61,8 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                              SELECT GROUP_CONCAT(labels.key) WITHIN RECORD AS labels_key,
                                     GROUP_CONCAT(labels.value) WITHIN RECORD labels_value,
                                     cost,
-                                    product,
-                                    resource_type
+                                    service.description, 
+                                    sku.description
                              FROM [%s:%s]
                              WHERE project.id = '%s'
                                      AND
@@ -182,9 +182,12 @@ def print_submission_pricing(ws_namespace, ws_name, query_sub_id, query_workflow
                             call_name = call["backendLabels"]["wdl-task-name"]
                         # since this has a backendLabel it was not a call cache hit, so add to number of calls
                         num_calls += 1
-                    elif call["callCaching"]["hit"]:
+                    elif "callCaching" in call and call["callCaching"]["hit"]:
                         num_calls += 1
                         cache_hit = True
+                    elif "subWorkflowId" in call:
+                        print_submission_pricing(ws_namespace, ws_name, submission_id, call["subWorkflowId"], show_all_calls,
+                             bill_query_to_project_name, dataset_project_name, dataset_name, print_queries)
                     else:
                         num_calls = 0
                                     
