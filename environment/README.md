@@ -1,9 +1,13 @@
 ## Set up Cromwell configuration for running on Google Cloud
 
-To run this script:
+```
+$ python create_google_config.py
+```
+
+<!-- To run this script:
 ```
 ./run.sh environment/create_google_config.py
-```
+``` -->
 
 <!--To run using Docker:
 ```
