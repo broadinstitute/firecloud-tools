@@ -47,7 +47,6 @@ def main():
 
 	# Create config
 	create_config()
-	
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
 def google_config_check():
@@ -108,7 +107,7 @@ def which_google_project():
 
 	# User doesn't have existing project
 	elif existing_project.startswith("n"):
-		print "\nIf you do not have a Google project you want to use, this script will generate a new one\nfor you."
+		print "\nIf you do not have a Google project you want to use, this script will generate a new one for you."
 		create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
 
 		while not (create_new_project.startswith("y") or create_new_project.startswith("n")):
@@ -169,12 +168,11 @@ def find_billing_accounts():
     	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E): ")
     	print "You have selected this Billing Account: %s" % billing_account_id
 
-    	# Project name with datetime stamp and user's email address
+    	# Project name with datetime stamp (minute and second) and user's email address
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
     	global project_name
-    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%H-%M-%S")
+    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%M-%S")
     	create_google_project(project_name, billing_account_id)
-
 
 # Create a google project for the user
 def create_google_project(project_name, billing_account_id):
@@ -182,7 +180,8 @@ def create_google_project(project_name, billing_account_id):
 	print "Creating Google project..."
 	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
-	#TODO check if sleep is necessary, decrease time
+	# Sleep is necessary to give time to create project
+	#TODO decrease time?
 	time.sleep(10) 
 	# Link new project to billing account
 	print "Linking project to your billing account..."
@@ -202,9 +201,9 @@ def enable_billing_account(billing_account_id, project_name):
 def create_google_bucket(project_name):
 	#TODO: change bucket name to not include datetime
 	#TODO: handle exception if existing bucket
-	print "Step (3): Create a Google bucket, starting now..."
+	print "\nStep (3): Create a Google bucket, starting now..."
 	global bucket_name
-	bucket_name = "%s" % project_name + "-executions-" + datetime.datetime.now().strftime("%H-%M")
+	bucket_name = "%s" % project_name + "-executions"
 	storage_client.create_bucket(bucket_name)
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 	return bucket_name
@@ -212,19 +211,17 @@ def create_google_bucket(project_name):
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
 def create_config():
-	#TODO: clean up file open and write by using `with`
 	#TODO: make `home` a global variable to remove duplication from inital check for existing config file
-	print "Step (4): Create configuration file, starting now..."
+	print "\nStep (4): Create configuration file, starting now..."
 	home = os.path.expanduser("~")
 	config = open(home + "/.google_cromwell.config","w+")
 	#TODO: make tabs smaller
-	#TODO: put contents of config file into another file, automate way to take HOCON formatting and make it into string format
+	#TODO: put contents of config file into another file, automate way to take formatting and make it into string format
 	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
 	config.write(config_contents)
 	config.close()
 	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
 	start_cromwell_test()
-    
 
 def start_cromwell_test():
 	print "\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
@@ -297,7 +294,6 @@ def hello_test():
 			urllib.urlretrieve(download_url, "cromwell.jar")
 
 	#TODO: add error handling for if cromwell doesn't download
-	#TODO: make home global
 
 	# Run test
 	home = os.path.expanduser("~")
@@ -306,8 +302,7 @@ def hello_test():
 	os.system(test_configuration)
 
 	# Success
-	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\nNow run the <<[INSERT NEW SCRIPT]>> script to automatically use your new configuration\nfor running your WDLs on Google Cloud." % bucket_name
-
+	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n Happy WDL-ing!" % bucket_name
 
 if __name__ == "__main__":
-    main()#project_name, bucket_name
+    main()
