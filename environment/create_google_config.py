@@ -281,7 +281,7 @@ def hello_test():
 	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
 	inputs_to_wdl.write(inputs_contents)
 	inputs_to_wdl.close()
-	print "Your inputs file is ready! It is stored as inputs.wdl."
+	print "Your inputs file is ready! It is stored as hello.inputs."
 
 	# Download latest Cromwell
 	print "Downloading latest version of Cromwell execution engine..."
