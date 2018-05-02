@@ -83,17 +83,18 @@ def sdk_install_check():
 		
 		# User chooses not to install SDK, exit the script because they can't continue.
 		elif installSdk.startswith("n"):
+			print "The Google Cloud SDK will not be installed. If you would like to install the SDK in the future, you can run this script again."
 			sys.exit("Exiting.")
 	
 	# Gcloud SDK is already installed, and user can continue with setup
 	else:
-		print "\nStep (1): You have Google Cloud SDK installed."
+		print "\nStep (1): You already have Google Cloud SDK installed. Step (1) is complete."
 		return
 
 # Which Google Project to use (new or existing)
 def which_google_project():
 
-	existing_project = raw_input('\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ').lower()
+	existing_project = raw_input('\n\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ').lower()
 
 	while not (existing_project.startswith("y") or existing_project.startswith("n")):	
 		existing_project = raw_input('\nPlease answer yes or no: ').lower()
@@ -120,9 +121,9 @@ def which_google_project():
 
 		# Don't create project, and exit
 		elif create_new_project.startswith("n"):
+			print "\nYou can set up a Google Project outside of this script and then re-run the script.\nThen at step (2), select Yes that you have an existing project and enter the project name to continue with setup." 
 			sys.exit("Exiting.")
 			return
-
 
 # Search for user's billing accounts
 def find_billing_accounts():
@@ -201,7 +202,7 @@ def enable_billing_account(billing_account_id, project_name):
 def create_google_bucket(project_name):
 	#TODO: change bucket name to not include datetime
 	#TODO: handle exception if existing bucket
-	print "\nStep (3): Create a Google bucket, starting now..."
+	print "Step (2) is complete.\n\nStep (3): Create a Google bucket, starting now..."
 	global bucket_name
 	bucket_name = "%s" % project_name + "-executions"
 	storage_client.create_bucket(bucket_name)
@@ -212,7 +213,7 @@ def create_google_bucket(project_name):
 
 def create_config():
 	#TODO: make `home` a global variable to remove duplication from inital check for existing config file
-	print "\nStep (4): Create configuration file, starting now..."
+	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
 	home = os.path.expanduser("~")
 	config = open(home + "/.google_cromwell.config","w+")
 	#TODO: make tabs smaller
@@ -224,7 +225,7 @@ def create_config():
 	start_cromwell_test()
 
 def start_cromwell_test():
-	print "\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
+	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
 	enable_apis = raw_input('\nWould you like to enable these APIs now? (yes or no) ').lower()
 	
 	while not (enable_apis.startswith("y") or enable_apis.startswith("n")):
@@ -239,7 +240,7 @@ def start_cromwell_test():
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
 		
 		# Continue with testing configuration
-		continue_test = raw_input('\nStep (6): Test your configuration\nDo you want to run a Hello WDL test to check your configuration? (yes or no) ')
+		continue_test = raw_input('Step (5) is complete.\n\nStep (6): Test your configuration\nDo you want to run a Hello WDL test to check your configuration? (yes or no) ')
 			
 		while not (continue_test.startswith("y") or continue_test.startswith("n")):
 			continue_test = raw_input('\nPlease answer yes or no: ').lower()
