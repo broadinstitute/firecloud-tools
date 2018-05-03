@@ -166,9 +166,9 @@ def find_billing_accounts():
 
     	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
     	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
-    	ex_billint_acct = "002481-B7351F-CD111E"
+    	ex_billing_acct = "002481-B7351F-CD111E"
     	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billint_acct)
-    	while len(billing_account_id) != len(ex_billint_acct):
+    	while len(billing_account_id) != len(ex_billing_acct):
 			billing_account_id = raw_input("Please enter a valid billing account: ")
     	print "\nYou have selected this Billing Account: %s" % billing_account_id
 
@@ -251,7 +251,7 @@ def start_cromwell_test(project_name):
 			hello_test()
 
 		else:
-			# Add more info
+			print "You are now ready to use Cromwell to run pipelines on Google Cloud.\nNext you can run a simple WDL with the Five Minute Tutorial here: http://cromwell.readthedocs.io/en/develop/tutorials/FiveMinuteIntro/\n"
 			sys.exit("Exiting.")
 
 	# Don't enable APIs, and exit
