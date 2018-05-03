@@ -67,7 +67,7 @@ def input_prompt(prompt_text):
 	while not (yes_or_no.startswith("y") or yes_or_no.startswith("n")):
 		yes_or_no = raw_input('\nPlease answer yes or no: ').lower()
 
-	# Returns boolean
+	# Return boolean
 	return yes_or_no.startswith("y")
 
 # Ensure that gcloud SDK is installed, which is necessary to run the rest of the script. 
@@ -101,32 +101,26 @@ def sdk_install_check():
 # Which Google Project to use (new or existing)
 def which_google_project():
 
-	existing_project = raw_input('\n\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ').lower()
+	existing_project = input_prompt('\n\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ')
 
-	while not (existing_project.startswith("y") or existing_project.startswith("n")):	
-		existing_project = raw_input('\nPlease answer yes or no: ').lower()
-		
 	# User has existing project
-	if existing_project.startswith("y"):
+	if existing_project:
 		project_name = raw_input('\nEnter your Google project name: ')
 		create_google_bucket(project_name)
 
 	# User doesn't have existing project
-	elif existing_project.startswith("n"):
+	else:
 		print "\nIf you do not have a Google project you want to use, this script will generate a new one for you."
-		create_new_project = raw_input('\nWould you like to continue? (yes or no) ').lower()
-
-		while not (create_new_project.startswith("y") or create_new_project.startswith("n")):
-			create_new_project = raw_input('\nPlease answer yes or no: ').lower()
+		create_new_project = input_prompt('\nWould you like to continue? (yes or no) ')
 
 		# Create new project
-		if create_new_project.startswith("y"):
+		if create_new_project:
 			project_name = find_billing_accounts()
 
 			# Which later creates the google project
 
 		# Don't create project, and exit
-		elif create_new_project.startswith("n"):
+		else:
 			print "\nYou can set up a Google Project outside of this script and then re-run the script.\nThen at step (2), select Yes that you have an existing project and enter the project name to continue with setup." 
 			sys.exit("Exiting.")
 	return project_name
@@ -172,8 +166,11 @@ def find_billing_accounts():
 
     	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
     	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
-    	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: 002481-B7351F-CD111E): ")
-    	print "You have selected this Billing Account: %s" % billing_account_id
+    	ex_billint_acct = "002481-B7351F-CD111E"
+    	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billint_acct)
+    	while len(billing_account_id) != len(ex_billint_acct):
+			billing_account_id = raw_input("Please enter a valid billing account: ")
+    	print "\nYou have selected this Billing Account: %s" % billing_account_id
 
     	# Project name with datetime stamp (minute and second) and user's email address
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
@@ -237,13 +234,10 @@ def create_config(project_name):
 
 def start_cromwell_test(project_name):
 	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
-	enable_apis = raw_input('\nWould you like to enable these APIs now? (yes or no) ').lower()
-	
-	while not (enable_apis.startswith("y") or enable_apis.startswith("n")):
-		enable_apis = raw_input('\nPlease answer yes or no: ').lower()
+	enable_apis = input_prompt('\nWould you like to enable these APIs now? (yes or no) ')
 	
 	# Enable APIs
-	if enable_apis.startswith("y"):
+	if enable_apis:
 		print "\nEnabling APIs..."
 		serviceList = ["compute.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for serviceName in serviceList:
@@ -251,23 +245,19 @@ def start_cromwell_test(project_name):
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
 		
 		# Continue with testing configuration
-		continue_test = raw_input('Step (5) is complete.\n\nStep (6): Test your configuration\nDo you want to run a Hello WDL test to check your configuration? (yes or no) ')
-			
-		while not (continue_test.startswith("y") or continue_test.startswith("n")):
-			continue_test = raw_input('\nPlease answer yes or no: ').lower()
+		continue_test = input_prompt('Step (5) is complete.\n\nStep (6): Test your configuration\nDo you want to run a Hello WDL test to check your configuration? (yes or no) ')
 
-		if continue_test.startswith("y"):
+		if continue_test:
 			hello_test()
 
-		elif continue_test.startswith("n"):
+		else:
+			# Add more info
 			sys.exit("Exiting.")
-			return
 
 	# Don't enable APIs, and exit
-	elif enable_apis.startswith("n"):
+	else:
 		print "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
 		sys.exit("Exiting.")
-		return
 
 def enable_services(serviceName, project_name):
 	body = {"consumerId": "project:%s" % project_name}

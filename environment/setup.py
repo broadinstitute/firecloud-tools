@@ -8,5 +8,5 @@ setup(name='Cromwell Config setup',
       author='Kate Voss',
       author_email='kvoss@broadinstitute.org',
       url='https://github.com/broadinstitute/firecloud-tools',
-      packages=['google-api-python-client', 'google.auth', 'google.cloud'],
+      packages=['google-api-python-client', 'google.auth', 'google.cloud', 'apiclient.discovery'],
      )
