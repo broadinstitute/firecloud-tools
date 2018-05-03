@@ -10,6 +10,7 @@ import json, re
 import urllib
 import datetime, time
 import requests
+# IN README: python setup.py install pre-req pre-script
 
 # Google setup
 credentials = GoogleCredentials.get_application_default()
@@ -23,7 +24,6 @@ storage_client = storage.Client()
 smgt = build('servicemanagement', 'v1', credentials=credentials)
 
 # Global variables
-project_name = ""
 bucket_name = ""
 
 #TODO: take out the error messages, info prompts, etc and put into another file (import them here)
@@ -43,10 +43,10 @@ def main():
 	sdk_install_check()
 
 	# Select Google project (new or existing)
-	which_google_project()
+	project_name = which_google_project()
 
 	# Create config
-	create_config()
+	create_config(project_name)
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
 def google_config_check():
@@ -60,6 +60,16 @@ def google_config_check():
 		print "\nYou already have a Cromwell configuration file. If you would like to clear this setup\nand create a new file, remove (or rename) the hidden file ~/.google_cromwell.config\n"
 		sys.exit("Exiting.")
 
+def input_prompt(prompt_text):
+	# Get user input after prompt
+	yes_or_no = raw_input(prompt_text).lower()
+	
+	while not (yes_or_no.startswith("y") or yes_or_no.startswith("n")):
+		yes_or_no = raw_input('\nPlease answer yes or no: ').lower()
+
+	# Returns boolean
+	return yes_or_no.startswith("y")
+
 # Ensure that gcloud SDK is installed, which is necessary to run the rest of the script. 
 def sdk_install_check():
 		
@@ -67,13 +77,10 @@ def sdk_install_check():
 	if os.system('gcloud version') is not 0:
 		
 		# Ask if user wants to install the SDK
-		installSdk = raw_input('\nStep (1): You do not have Google Cloud SDK installed, which you need to run this script.\nDo you want to install gcloud SDK? (yes or no)').lower()
-		
-		while not (installSdk.startswith("y") or installSdk.startswith("n")):
-			installSdk = raw_input('\nPlease answer yes or no: ').lower()
+		installSdk = input_prompt('\nStep (1): You do not have Google Cloud SDK installed, which you need to run this script.\nDo you want to install gcloud SDK? (yes or no)')
 			
 		# User chooses to install
-		if installSdk.startswith("y"):
+		if installSdk:
 			os.system('curl https://sdk.cloud.google.com | bash')
 			shell = os.path.expanduser("$SHELL")
 			# Need to create new shell to start using gcloud
@@ -82,7 +89,7 @@ def sdk_install_check():
 			return
 		
 		# User chooses not to install SDK, exit the script because they can't continue.
-		elif installSdk.startswith("n"):
+		else:
 			print "The Google Cloud SDK will not be installed. If you would like to install the SDK in the future, you can run this script again."
 			sys.exit("Exiting.")
 	
@@ -101,10 +108,8 @@ def which_google_project():
 		
 	# User has existing project
 	if existing_project.startswith("y"):
-		global project_name
 		project_name = raw_input('\nEnter your Google project name: ')
 		create_google_bucket(project_name)
-		return project_name
 
 	# User doesn't have existing project
 	elif existing_project.startswith("n"):
@@ -116,14 +121,15 @@ def which_google_project():
 
 		# Create new project
 		if create_new_project.startswith("y"):
-			find_billing_accounts()
+			project_name = find_billing_accounts()
+
 			# Which later creates the google project
 
 		# Don't create project, and exit
 		elif create_new_project.startswith("n"):
 			print "\nYou can set up a Google Project outside of this script and then re-run the script.\nThen at step (2), select Yes that you have an existing project and enter the project name to continue with setup." 
 			sys.exit("Exiting.")
-			return
+	return project_name
 
 # Search for user's billing accounts
 def find_billing_accounts():
@@ -171,10 +177,10 @@ def find_billing_accounts():
 
     	# Project name with datetime stamp (minute and second) and user's email address
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
-    	global project_name
     	user_name = check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]
     	project_name = "cromwell-%s" % user_name + datetime.datetime.now().strftime("-%M-%S")
     	create_google_project(project_name, billing_account_id)
+    	return project_name
 
 # Create a google project for the user
 def create_google_project(project_name, billing_account_id):
@@ -184,6 +190,7 @@ def create_google_project(project_name, billing_account_id):
 	crm.projects().create(body=body).execute()
 	# Sleep is necessary to give time to create project
 	#TODO decrease time?
+	# Look in Lukas's, get project (field with status), list projects (won't be included yet)/ while check, if not done then sleep; have print so people know it's working - print over same lines
 	time.sleep(10) 
 	# Link new project to billing account
 	print "Linking project to your billing account..."
@@ -212,7 +219,7 @@ def create_google_bucket(project_name):
 
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
-def create_config():
+def create_config(project_name):
 	#TODO: make `home` a global variable to remove duplication from inital check for existing config file
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
 	home = os.path.expanduser("~")
@@ -226,9 +233,9 @@ def create_config():
 		f.write(config_contents)
 
 	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
-	start_cromwell_test()
+	start_cromwell_test(project_name)
 
-def start_cromwell_test():
+def start_cromwell_test(project_name):
 	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
 	enable_apis = raw_input('\nWould you like to enable these APIs now? (yes or no) ').lower()
 	
@@ -240,7 +247,7 @@ def start_cromwell_test():
 		print "\nEnabling APIs..."
 		serviceList = ["compute.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for serviceName in serviceList:
-			enable_services(serviceName)
+			enable_services(serviceName, project_name)
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
 		
 		# Continue with testing configuration
@@ -262,7 +269,7 @@ def start_cromwell_test():
 		sys.exit("Exiting.")
 		return
 
-def enable_services(serviceName):
+def enable_services(serviceName, project_name):
 	body = {"consumerId": "project:%s" % project_name}
 	params = {"serviceName": "%s" % serviceName, "body": body}
 	# print params
@@ -306,8 +313,11 @@ def hello_test():
 	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test.\n\nRunning $ %s" % test_configuration
 	os.system(test_configuration)
 
+	#TODO check if actually successful
 	# Success
 	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n Happy WDL-ing!" % bucket_name
+
+	#Tell users what to do (look at docs etc) if failed
 
 if __name__ == "__main__":
     main()

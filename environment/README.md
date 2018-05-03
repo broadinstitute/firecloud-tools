@@ -19,3 +19,5 @@ docker run \-\-rm -it -v "$HOME"/.config:/.config broadinstitute/firecloud-tools
 * Set the Application Default Credentials 
 	* To do this, run `gcloud auth application-default login`
 * [Google Billing Project](https://cloud.google.com/billing/docs/how-to/manage-billing-account#create_a_new_billing_account) to pay for storage and compute
+* Run `python setup.py install`
+* Python 2.7
