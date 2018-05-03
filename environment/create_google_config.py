@@ -4,6 +4,7 @@ from apiclient.discovery import build
 # import GoogleCredentials
 from oauth2client.client import GoogleCredentials
 import google.auth
+from oauth2client.file import Storage
 from subprocess import check_output
 from google.cloud import resource_manager, storage
 import json, re
@@ -19,14 +20,15 @@ billing = build('cloudbilling', 'v1', credentials=credentials)
 # Build a cloud resource manager API service
 crm = build('cloudresourcemanager', 'v1', credentials=credentials)
 # Create storage client
-storage_client = storage.Client()
+storage = build('storage', 'v1', credentials=credentials)
+#storage_client = storage.Client()
 # Create Service management API service
 smgt = build('servicemanagement', 'v1', credentials=credentials)
 
 # Global variables
 bucket_name = ""
+home = os.path.expanduser("~")
 
-#TODO: take out the error messages, info prompts, etc and put into another file (import them here)
 #TODO: consider making the configuration a class, so that a user could create multiple configurations
 #TODO: add nice error message for if user does keyboard interrupt (command + C) at any point in the script. Is it possible to make the errors specific to where they are in the process? post-created project, post-config created, etc?
 
@@ -52,7 +54,6 @@ def main():
 def google_config_check():
 	
 	# Check for .google_cromwell.config in ~/
-	home = os.path.expanduser("~")
 	existance = os.path.exists(home + '/.google_cromwell.config')
 	
 	# If there is a configuration file, exit
@@ -167,7 +168,7 @@ def find_billing_accounts():
     	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
     	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
     	ex_billing_acct = "002481-B7351F-CD111E"
-    	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billint_acct)
+    	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billing_acct)
     	while len(billing_account_id) != len(ex_billing_acct):
 			billing_account_id = raw_input("Please enter a valid billing account: ")
     	print "\nYou have selected this Billing Account: %s" % billing_account_id
@@ -191,6 +192,7 @@ def create_google_project(project_name, billing_account_id):
 	time.sleep(10) 
 	# Link new project to billing account
 	print "Linking project to your billing account..."
+	time.sleep(10)
 	enable_billing_account(billing_account_id, project_name)
 	return project_name
 
@@ -205,21 +207,25 @@ def enable_billing_account(billing_account_id, project_name):
 	create_google_bucket(project_name)
 
 def create_google_bucket(project_name):
-	#TODO: change bucket name to not include datetime
-	#TODO: handle exception if existing bucket
+	#TODO: handle if user doesn't have access to bucket
 	print "Step (2) is complete.\n\n\nStep (3): Create a Google bucket, starting now..."
 	global bucket_name
 	bucket_name = "%s-executions" % project_name
-	storage_client.create_bucket(bucket_name)
+	body = {"name": "%s" % bucket_name}
+	params = {"project": "%s" % project_name, "body": body}
+	# client = storage.Client(project=project_name, credentials=credentials)
+	# client.create_bucket(bucket_name=bucket_name, project=project_name)
+	#storage_client.create_bucket(bucket_name)
+	storage.buckets().insert(**params).execute()
+
+
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 	return bucket_name
 
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
 def create_config(project_name):
-	#TODO: make `home` a global variable to remove duplication from inital check for existing config file
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
-	home = os.path.expanduser("~")
 
 	#TODO: make tabs smaller
 	#TODO: put contents of config file into another file, automate way to take formatting and make it into string format
@@ -298,7 +304,6 @@ def hello_test():
 	#TODO: add error handling for if cromwell doesn't download
 
 	# Run test
-	home = os.path.expanduser("~")
 	test_configuration = "java -Dconfig.file=" + home +"/.google_cromwell.config -jar cromwell.jar run hello.wdl -i hello.inputs"
 	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test.\n\nRunning $ %s" % test_configuration
 	os.system(test_configuration)
