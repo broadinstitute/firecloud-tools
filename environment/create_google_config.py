@@ -205,7 +205,7 @@ def create_google_bucket(project_name):
 	#TODO: handle exception if existing bucket
 	print "Step (2) is complete.\n\nStep (3): Create a Google bucket, starting now..."
 	global bucket_name
-	bucket_name = "%s" % project_name + "-executions"
+	bucket_name = "%s-executions" % project_name
 	storage_client.create_bucket(bucket_name)
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 	return bucket_name
