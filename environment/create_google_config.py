@@ -172,7 +172,8 @@ def find_billing_accounts():
     	# Project name with datetime stamp (minute and second) and user's email address
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
     	global project_name
-    	project_name = "cromwell-" + "%s" % (check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]) + datetime.datetime.now().strftime("-%M-%S")
+    	user_name = check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]
+    	project_name = "cromwell-%s" % user_name + datetime.datetime.now().strftime("-%M-%S")
     	create_google_project(project_name, billing_account_id)
 
 # Create a google project for the user
