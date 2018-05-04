@@ -240,7 +240,6 @@ def start_cromwell_test(project_name):
 	
 	# Enable APIs
 	if enable_apis:
-		print "\nEnabling APIs..."
 		serviceList = ["compute.googleapis.com", "storage-api.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for service_name in serviceList:
 			enable_services(service_name, project_name)
@@ -272,11 +271,20 @@ def enable_services(service_name, project_name):
 
 def check_services_enabled(project_name, service_name):
 	params = {"consumerId": "project:%s" % project_name, "fields":"services/serviceName"}
+	
+	# List services currently enabled
 	result = smgt.services().list(**params).execute()
-	print result
-	while service_name not in result:
-		print "Enabling API..."
-		time.sleep(10)
+
+	# Search through list of services to see if the API has been enabled  
+	while True: 
+		if "services" in result:
+			for s in result["services"]:
+				q = s["serviceName"]
+				if service_name in q:
+					return False
+		print "Enabling APIs..."
+		time.sleep(15)
+		result = smgt.services().list(**params).execute()
 
 def hello_test():
 	# Create WDL
