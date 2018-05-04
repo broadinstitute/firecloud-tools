@@ -182,18 +182,31 @@ def find_billing_accounts():
 # Create a google project for the user
 def create_google_project(project_name, billing_account_id):
 	# Create google project
-	print "Creating Google project..."
 	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
-	# Sleep is necessary to give time to create project
-	#TODO decrease time?
-	# Look in Lukas's, get project (field with status), list projects (won't be included yet)/ while check, if not done then sleep; have print so people know it's working - print over same lines
-	time.sleep(10) 
+	
+	# Check the project is ready
+	check_project_created(project_name)
+	
 	# Link new project to billing account
-	print "Linking project to your billing account..."
-	time.sleep(10)
 	enable_billing_account(billing_account_id, project_name)
 	return project_name
+
+def check_project_created(project_name):
+	# List projects currently created
+	result = crm.projects().list().execute()
+
+	# Search through list of services to see if the API has been enabled  
+	while True: 
+		if "projects" in result:
+			for s in result["projects"]:
+				q = s["name"]
+				if project_name in q:
+					print "Project created successfully. View your new project here: https://console.cloud.google.com/home/dashboard?project=%s" % project_name
+					return False
+		print "Creating project..."
+		time.sleep(10)
+		result = crm.projects().list().execute() 
 
 # Link the newly created Google project to the user's chosen billing account
 def enable_billing_account(billing_account_id, project_name):
@@ -202,9 +215,30 @@ def enable_billing_account(billing_account_id, project_name):
 	
 	# Enable billing account
 	billing.projects().updateBillingInfo(**params).execute()
-	print "Project created successfully. View your new project here: https://console.cloud.google.com/home/dashboard?project=%s" % project_name
-	time.sleep(10)
+
+	# Check billing is enabled
+	check_billing_enabled(project_name)
+
+	# Then create bucket
 	create_google_bucket(project_name)
+
+def check_billing_enabled(project_name):
+	params = {"name": "projects/%s" % project_name, "fields":"billingEnabled"}
+	# Get current billing info
+	result = billing.projects().getBillingInfo(**params).execute()
+
+	# Search through list of services to see if the API has been enabled  
+	while True: 
+		if "billingEnabled" in result:
+			q = result["billingEnabled"]
+			if True == q:
+				print "Billing is enabled for your project."
+				# A short pause before returning 
+				time.sleep(10)
+				return False
+		print "Linking project to your billing account..."
+		time.sleep(10)
+		result = billing.projects().getBillingInfo(**params).execute()
 
 def create_google_bucket(project_name):
 	#TODO: handle if user doesn't have access to bucket
@@ -213,6 +247,7 @@ def create_google_bucket(project_name):
 	bucket_name = "%s-executions" % project_name
 	body = {"name": "%s" % bucket_name}
 	params = {"project": "%s" % project_name, "body": body}
+
 	storage.buckets().insert(**params).execute()
 
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
@@ -271,7 +306,7 @@ def enable_services(service_name, project_name):
 
 def check_services_enabled(project_name, service_name):
 	params = {"consumerId": "project:%s" % project_name, "fields":"services/serviceName"}
-	
+
 	# List services currently enabled
 	result = smgt.services().list(**params).execute()
 
