@@ -204,6 +204,7 @@ def enable_billing_account(billing_account_id, project_name):
 	# Enable billing account
 	billing.projects().updateBillingInfo(**params).execute()
 	print "Project created successfully. View your new project here: https://console.cloud.google.com/home/dashboard?project=%s" % project_name
+	time.sleep(10)
 	create_google_bucket(project_name)
 
 def create_google_bucket(project_name):
@@ -213,11 +214,7 @@ def create_google_bucket(project_name):
 	bucket_name = "%s-executions" % project_name
 	body = {"name": "%s" % bucket_name}
 	params = {"project": "%s" % project_name, "body": body}
-	# client = storage.Client(project=project_name, credentials=credentials)
-	# client.create_bucket(bucket_name=bucket_name, project=project_name)
-	#storage_client.create_bucket(bucket_name)
 	storage.buckets().insert(**params).execute()
-
 
 	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 	return bucket_name
@@ -239,13 +236,13 @@ def create_config(project_name):
 	start_cromwell_test(project_name)
 
 def start_cromwell_test(project_name):
-	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Compute Engine, Google Genomics."
+	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Cloud Storage JSON, Google Compute Engine, Google Genomics."
 	enable_apis = input_prompt('\nWould you like to enable these APIs now? (yes or no) ')
 	
 	# Enable APIs
 	if enable_apis:
 		print "\nEnabling APIs..."
-		serviceList = ["compute.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
+		serviceList = ["compute.googleapis.com", "storage-api.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for serviceName in serviceList:
 			enable_services(serviceName, project_name)
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
@@ -262,7 +259,7 @@ def start_cromwell_test(project_name):
 
 	# Don't enable APIs, and exit
 	else:
-		print "Don't forget to enable the APIs through the Google Console or gcloud SDK prior to using the configuration."
+		print "Don't forget to enable the APIs through the Google Console prior to using the configuration."
 		sys.exit("Exiting.")
 
 def enable_services(serviceName, project_name):
@@ -305,12 +302,12 @@ def hello_test():
 
 	# Run test
 	test_configuration = "java -Dconfig.file=" + home +"/.google_cromwell.config -jar cromwell.jar run hello.wdl -i hello.inputs"
-	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test.\n\nRunning $ %s" % test_configuration
+	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test...\n\nRunning $ %s\n" % test_configuration
 	os.system(test_configuration)
 
 	#TODO check if actually successful
 	# Success
-	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n Happy WDL-ing!" % bucket_name
+	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
 
 	#Tell users what to do (look at docs etc) if failed
 
