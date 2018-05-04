@@ -28,9 +28,6 @@ smgt = build('servicemanagement', 'v1', credentials=credentials)
 bucket_name = ""
 home = os.path.expanduser("~")
 
-#TODO: consider making the configuration a class, so that a user could create multiple configurations
-#TODO: add nice error message for if user does keyboard interrupt (command + C) at any point in the script. Is it possible to make the errors specific to where they are in the process? post-created project, post-config created, etc?
-
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
 def main():
@@ -43,7 +40,7 @@ def main():
 	# Ensure that gcloud SDK is installed, which is necessary to run the rest of the script. 
 	sdk_install_check()
 
-	# Select Google project (new or existing)
+	# Select Google project (new or existing), continues on to create bucket
 	project_name = which_google_project()
 
 	# Create config
@@ -164,8 +161,7 @@ def find_billing_accounts():
     	for billing_acct in billing_accounts_list:
     		print "%s\t%s" % (billing_acct["name"].replace("billingAccounts/",""), billing_acct["displayName"])
 
-    	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project."
-    	#TODO add note that this Google Project is where the compute will run, the billing account is what will be charged when user runs the sample script, or when they use the config. etc
+    	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project. This will be the billing account that is charged\nfor storage and compute costs."
     	ex_billing_acct = "002481-B7351F-CD111E"
     	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billing_acct)
     	while len(billing_account_id) != len(ex_billing_acct):
@@ -241,7 +237,6 @@ def check_billing_enabled(project_name):
 		result = billing.projects().getBillingInfo(**params).execute()
 
 def create_google_bucket(project_name):
-	#TODO: handle if user doesn't have access to bucket
 	print "Step (2) is complete.\n\n\nStep (3): Create a Google bucket, starting now..."
 	global bucket_name
 	bucket_name = "%s-executions" % project_name
@@ -250,8 +245,24 @@ def create_google_bucket(project_name):
 
 	storage.buckets().insert(**params).execute()
 
-	print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
+	# Check the bucket was created
+	check_bucket_created(bucket_name)
+
 	return bucket_name
+
+def check_bucket_created(bucket_name):
+	params = {"bucket": "%s" % bucket_name, "fields":"timeCreated"}
+	# Get current billing info
+	result = storage.buckets().get(**params).execute()
+
+	# Search through list of services to see if the API has been enabled  
+	while True: 
+		if "timeCreated" in result:
+			print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
+			return False
+		print "Creating bucket..."
+		time.sleep(10)
+		result = storage.buckets().get(**params).execute()
 
 #TODO: ask for dockerhub credentials if they are going to use private dockers
 
@@ -334,7 +345,7 @@ def hello_test():
 	# Create Inputs file
 	print "Creating inputs file..."
 	inputs_to_wdl = open("hello.inputs", "w+")
-	#TODO: make tabs smaller
+
 	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
 	inputs_to_wdl.write(inputs_contents)
 	inputs_to_wdl.close()
