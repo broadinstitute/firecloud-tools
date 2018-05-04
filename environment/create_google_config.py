@@ -21,7 +21,6 @@ billing = build('cloudbilling', 'v1', credentials=credentials)
 crm = build('cloudresourcemanager', 'v1', credentials=credentials)
 # Create storage client
 storage = build('storage', 'v1', credentials=credentials)
-#storage_client = storage.Client()
 # Create Service management API service
 smgt = build('servicemanagement', 'v1', credentials=credentials)
 
@@ -243,8 +242,9 @@ def start_cromwell_test(project_name):
 	if enable_apis:
 		print "\nEnabling APIs..."
 		serviceList = ["compute.googleapis.com", "storage-api.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
-		for serviceName in serviceList:
-			enable_services(serviceName, project_name)
+		for service_name in serviceList:
+			enable_services(service_name, project_name)
+		
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
 		
 		# Continue with testing configuration
@@ -262,11 +262,21 @@ def start_cromwell_test(project_name):
 		print "Don't forget to enable the APIs through the Google Console prior to using the configuration."
 		sys.exit("Exiting.")
 
-def enable_services(serviceName, project_name):
+def enable_services(service_name, project_name):
 	body = {"consumerId": "project:%s" % project_name}
-	params = {"serviceName": "%s" % serviceName, "body": body}
-	# print params
+	params = {"serviceName": "%s" % service_name, "body": body}
 	smgt.services().enable(**params).execute()
+
+	# Check that the service is enabled
+	check_services_enabled(project_name, service_name)
+
+def check_services_enabled(project_name, service_name):
+	params = {"consumerId": "project:%s" % project_name, "fields":"services/serviceName"}
+	result = smgt.services().list(**params).execute()
+	print result
+	while service_name not in result:
+		print "Enabling API..."
+		time.sleep(10)
 
 def hello_test():
 	# Create WDL
@@ -282,7 +292,6 @@ def hello_test():
 	print "Creating inputs file..."
 	inputs_to_wdl = open("hello.inputs", "w+")
 	#TODO: make tabs smaller
-	#TODO: check \ necessary?
 	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
 	inputs_to_wdl.write(inputs_contents)
 	inputs_to_wdl.close()
