@@ -43,10 +43,10 @@ def main():
 	sdk_install_check()
 
 	# Select Google project (new or existing), continues on to create bucket
-	project_name = which_google_project()
+	which_google_project()
 
 	# Create config
-	create_config(project_name)
+	create_config()
 
 # Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
 def google_config_check():
@@ -105,7 +105,7 @@ def which_google_project():
 	# User has existing project
 	if existing_project:
 		project_name = raw_input('\nEnter your Google project name: ')
-		create_google_bucket(project_name)
+		create_google_bucket()
 
 	# User doesn't have existing project
 	else:
@@ -114,7 +114,8 @@ def which_google_project():
 
 		# Create new project
 		if create_new_project:
-			project_name = find_billing_accounts()
+			#TODO remove?project_name = find_billing_accounts()
+			find_billing_accounts()
 
 			# Which later creates the google project
 
@@ -174,23 +175,25 @@ def find_billing_accounts():
     	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
     	user_name = check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]
     	project_name = "cromwell-%s" % user_name + datetime.datetime.now().strftime("-%M-%S")
-    	create_google_project(project_name, billing_account_id)
+    	create_google_project(billing_account_id)
     	return project_name
 
 # Create a google project for the user
-def create_google_project(project_name, billing_account_id):
+def create_google_project(billing_account_id):
+	global project_name
 	# Create google project
 	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
 	
 	# Check the project is ready
-	check_project_created(project_name)
+	check_project_created()
 	
 	# Link new project to billing account
-	enable_billing_account(billing_account_id, project_name)
+	enable_billing_account(billing_account_id)
 	return project_name
 
-def check_project_created(project_name):
+def check_project_created():
+	global project_name
 	# List projects currently created
 	result = crm.projects().list().execute()
 
@@ -207,7 +210,8 @@ def check_project_created(project_name):
 		result = crm.projects().list().execute() 
 
 # Link the newly created Google project to the user's chosen billing account
-def enable_billing_account(billing_account_id, project_name):
+def enable_billing_account(billing_account_id):
+	global project_name
 	body = {"project_id": "%s" % project_name, "billing_account_name": "billingAccounts/%s" % billing_account_id, "billing_enabled": "True"}
 	params = {"name": "projects/%s" % project_name, "body": body}
 	
@@ -215,12 +219,13 @@ def enable_billing_account(billing_account_id, project_name):
 	billing.projects().updateBillingInfo(**params).execute()
 
 	# Check billing is enabled
-	check_billing_enabled(project_name)
+	check_billing_enabled()
 
 	# Then create bucket
-	create_google_bucket(project_name)
+	create_google_bucket()
 
-def check_billing_enabled(project_name):
+def check_billing_enabled():
+	global project_name
 	params = {"name": "projects/%s" % project_name, "fields":"billingEnabled"}
 	# Get current billing info
 	result = billing.projects().getBillingInfo(**params).execute()
@@ -238,9 +243,11 @@ def check_billing_enabled(project_name):
 		time.sleep(10)
 		result = billing.projects().getBillingInfo(**params).execute()
 
-def create_google_bucket(project_name):
-	print "Step (2) is complete.\n\n\nStep (3): Create a Google bucket, starting now..."
+def create_google_bucket():
+	global project_name
 	global bucket_name
+	print "Step (2) is complete.\n\n\nStep (3): Create a Google bucket, starting now..."
+
 	bucket_name = "%s-executions" % project_name
 	body = {"name": "%s" % bucket_name}
 	params = {"project": "%s" % project_name, "body": body}
@@ -266,7 +273,10 @@ def check_bucket_created(bucket_name):
 		time.sleep(10)
 		result = storage.buckets().get(**params).execute()
 
-def create_config(project_name):
+def create_config():
+	#TODO: will this work without project or bucket name?
+	global project_name
+	global bucket_name
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
 
 	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
@@ -276,9 +286,10 @@ def create_config(project_name):
 		f.write(config_contents)
 
 	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
-	start_cromwell_test(project_name)
+	start_cromwell_test()
 
-def start_cromwell_test(project_name):
+def start_cromwell_test():
+	global project_name
 	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Cloud Storage JSON, Google Compute Engine, Google Genomics."
 	enable_apis = input_prompt('\nWould you like to enable these APIs now? (yes or no) ')
 	
@@ -286,7 +297,7 @@ def start_cromwell_test(project_name):
 	if enable_apis:
 		serviceList = ["compute.googleapis.com", "storage-api.googleapis.com", "genomics.googleapis.com", "storage-component.googleapis.com"]
 		for service_name in serviceList:
-			enable_services(service_name, project_name)
+			enable_services(service_name)
 		
 		print "APIs are enabled. View the list of enabled APIs here: https://console.cloud.google.com/apis/dashboard?project=%s" % project_name
 		
@@ -305,15 +316,17 @@ def start_cromwell_test(project_name):
 		print "Don't forget to enable the APIs through the Google Console prior to using the configuration."
 		sys.exit("Exiting.")
 
-def enable_services(service_name, project_name):
+def enable_services(service_name):
+	global project_name
 	body = {"consumerId": "project:%s" % project_name}
 	params = {"serviceName": "%s" % service_name, "body": body}
 	smgt.services().enable(**params).execute()
 
 	# Check that the service is enabled
-	check_services_enabled(project_name, service_name)
+	check_services_enabled(service_name)
 
-def check_services_enabled(project_name, service_name):
+def check_services_enabled(service_name):
+	global project_name
 	params = {"consumerId": "project:%s" % project_name, "fields":"services/serviceName"}
 
 	# List services currently enabled
