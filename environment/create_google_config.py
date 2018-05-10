@@ -1,7 +1,7 @@
 ##!/usr/bin/env python
 import sys, os
 from apiclient.discovery import build
-# import GoogleCredentials
+# Import GoogleCredentials
 from oauth2client.client import GoogleCredentials
 import google.auth
 from oauth2client.file import Storage
@@ -12,6 +12,9 @@ import json#TODO remove? re
 import urllib
 import datetime, time
 import requests
+# Import WDL and inputs files for testing
+from hello.inputs import * as hello_inputs
+from hello.wdl import * as hello_wdl
 # IN README: python setup.py install pre-req pre-script
 
 # Google setup
@@ -347,8 +350,8 @@ def hello_test():
 	# Create WDL
 	print "Creating WDL file..."
 	wdl_ex = open("hello.wdl","w+")
-	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello ${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
-	wdl_ex.write(wdl_contents)
+	hello_wdl = hello_wdl
+	wdl_ex.write(hello_wdl)
 	wdl_ex.close()
 	print "Your WDL file is ready! It is stored as hello.wdl."
 
@@ -356,8 +359,8 @@ def hello_test():
 	print "Creating inputs file..."
 	inputs_to_wdl = open("hello.inputs", "w+")
 
-	inputs_contents = "{\n\t\"wf_hello.hello.addressee\": \"World\"\n}"
-	inputs_to_wdl.write(inputs_contents)
+	hello_inputs = hello_inputs
+	inputs_to_wdl.write(hello_inputs)
 	inputs_to_wdl.close()
 	print "Your inputs file is ready! It is stored as hello.inputs."
 
