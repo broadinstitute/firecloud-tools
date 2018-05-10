@@ -7,7 +7,8 @@ import google.auth
 from oauth2client.file import Storage
 from subprocess import check_output
 from google.cloud import resource_manager, storage
-import json, re
+# Import utilities
+import json#TODO remove? re
 import urllib
 import datetime, time
 import requests
@@ -27,6 +28,7 @@ smgt = build('servicemanagement', 'v1', credentials=credentials)
 # Global variables
 bucket_name = ""
 home = os.path.expanduser("~")
+project_name = ""
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
 
@@ -264,13 +266,9 @@ def check_bucket_created(bucket_name):
 		time.sleep(10)
 		result = storage.buckets().get(**params).execute()
 
-#TODO: ask for dockerhub credentials if they are going to use private dockers
-
 def create_config(project_name):
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
 
-	#TODO: make tabs smaller
-	#TODO: put contents of config file into another file, automate way to take formatting and make it into string format
 	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
 
 	# Create configuration file
@@ -329,14 +327,13 @@ def check_services_enabled(project_name, service_name):
 				if service_name in q:
 					return False
 		print "Enabling APIs..."
-		time.sleep(15)
+		time.sleep(20)
 		result = smgt.services().list(**params).execute()
 
 def hello_test():
 	# Create WDL
 	print "Creating WDL file..."
 	wdl_ex = open("hello.wdl","w+")
-	#TODO: make tabs smaller
 	wdl_contents = "task hello {\n\tString addressee\n\tcommand {\n\t\techo \"Hello ${addressee}! Welcome to Cromwell . . . on Google Cloud!\"\n\t}\n\toutput {\n\t\tString message = read_string(stdout())\n\t}\n\truntime {\n\t\tdocker: \"ubuntu:latest\"\n\t}\n}\n\nworkflow wf_hello {\n\tcall hello\n\n\toutput {\n\t\thello.message\n\t}\n}"
 	wdl_ex.write(wdl_contents)
 	wdl_ex.close()
@@ -360,8 +357,6 @@ def hello_test():
 		if "cromwell-" in asset["browser_download_url"]:
 			download_url = asset["browser_download_url"]
 			urllib.urlretrieve(download_url, "cromwell.jar")
-
-	#TODO: add error handling for if cromwell doesn't download
 
 	# Run test
 	test_configuration = "java -Dconfig.file=" + home +"/.google_cromwell.config -jar cromwell.jar run hello.wdl -i hello.inputs"
