@@ -349,19 +349,18 @@ def check_services_enabled(service_name):
 def hello_test():
 	# Create WDL
 	print "Creating WDL file..."
-	wdl_ex = open("hello.wdl","w+")
+	#TODO: is this necessary?
 	hello_wdl = hello_wdl
-	wdl_ex.write(hello_wdl)
-	wdl_ex.close()
+	with open("hello.wdl","w+") as f:
+		f.write(hello_wdl)
 	print "Your WDL file is ready! It is stored as hello.wdl."
 
 	# Create Inputs file
 	print "Creating inputs file..."
-	inputs_to_wdl = open("hello.inputs", "w+")
-
+	#TODO: is this necessary?
 	hello_inputs = hello_inputs
-	inputs_to_wdl.write(hello_inputs)
-	inputs_to_wdl.close()
+	with open("hello.inputs", "w+") as f:
+		f.write(hello_inputs)
 	print "Your inputs file is ready! It is stored as hello.inputs."
 
 	# Download latest Cromwell
