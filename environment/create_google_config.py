@@ -127,7 +127,7 @@ def which_google_project():
 # Search for user's billing accounts
 def find_billing_accounts():
 	
-	# Used information from coworker's script here: https://github.com/lukwam/gcp-tools/blob/master/lib/google.py#L216 to check that the user has access to any billing accounts
+	# https://github.com/lukwam/gcp-tools/blob/master/lib/google.py#L216 
 	# Create a request to list billingAccounts
     billing_accounts = billing.billingAccounts()
     request = billing_accounts.list()
@@ -255,6 +255,7 @@ def check_billing_enabled():
 		time.sleep(10)
 		result = billing.projects().getBillingInfo(**params).execute()
 
+# Create a google bucket for the user
 def create_google_bucket():
 	global project_name
 	global bucket_name
@@ -274,6 +275,7 @@ def create_google_bucket():
 
 	return bucket_name
 
+# Confirm that the bucket has been created
 def check_bucket_created(bucket_name):
 
 	# Setup parameters to check bucket is created
@@ -291,6 +293,7 @@ def check_bucket_created(bucket_name):
 		time.sleep(10)
 		result = storage.buckets().get(**params).execute()
 
+# Create the Cromwell configuration file
 def create_config():
 	
 	global project_name
@@ -306,6 +309,7 @@ def create_config():
 	print "Your configuration file is ready! It is stored in ~/.google_cromwell.config."
 	start_cromwell_test()
 
+# Test configuration and enable APIs
 def start_cromwell_test():
 	global project_name
 
@@ -338,6 +342,7 @@ def start_cromwell_test():
 		print "Don't forget to enable the APIs through the Google Console prior to using the configuration."
 		sys.exit("Exiting.")
 
+# Enable the APIs necessary for running genomics analysis
 def enable_services(service_name):
 	global project_name
 
@@ -351,6 +356,7 @@ def enable_services(service_name):
 	# Check that the APIs are enabled
 	check_services_enabled(service_name)
 
+# Check that the API is enabled before moving on to the next API
 def check_services_enabled(service_name):
 	global project_name
 
@@ -371,6 +377,7 @@ def check_services_enabled(service_name):
 		time.sleep(20)
 		result = smgt.services().list(**params).execute()
 
+# Download the latest Cromwell JAR and run the test
 def hello_test():
 	# Download latest Cromwell
 	print "Downloading latest version of Cromwell execution engine..."
