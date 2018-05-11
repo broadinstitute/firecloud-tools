@@ -1,23 +1,21 @@
 ##!/usr/bin/env python
 import sys, os
-from apiclient.discovery import build
+
 # Import GoogleCredentials
+from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
 import google.auth
 from oauth2client.file import Storage
 from subprocess import check_output
 from google.cloud import resource_manager, storage
+
 # Import utilities
-import json#TODO remove? re
+import json
 import urllib
 import datetime, time
 import requests
-# Import WDL and inputs files for testing
-from hello.inputs import * as hello_inputs
-from hello.wdl import * as hello_wdl
-# IN README: python setup.py install pre-req pre-script
 
-# Google setup
+# Setup of Google credentials necessary to access library functions
 credentials = GoogleCredentials.get_application_default()
 # Build a cloud billing API service
 billing = build('cloudbilling', 'v1', credentials=credentials)
@@ -30,14 +28,13 @@ smgt = build('servicemanagement', 'v1', credentials=credentials)
 
 # Global variables
 bucket_name = ""
-home = os.path.expanduser("~")
 project_name = ""
+home = os.path.expanduser("~")
 
 # The purpose of this script is to create a configuration file for Cromwell to run on Google Cloud with your local data.
-
 def main():
 	
-	# Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
+	# Check user has not run script before, to avoid overwriting existing configuration file
 	google_config_check()
 
 	print "\nHello and welcome! This script is for users who want to run their WDL scripts on Google Cloud\nusing the Cromwell engine. This script will walk you through the following setup steps:\n(1) Check that you have Google Cloud SDK installed,\n(2) Select an existing Google Project or create a new one,\n(3) Create a Google Bucket for the workflow outputs,\n(4) Create a Configuration file for running Cromwell,\n(5) Enable APIs for running workflows,\n(6) Test your configuration file by downloading Cromwell and running a \"Hello, World\" WDL.\n\nReady? Let's get started.\n"
@@ -51,7 +48,7 @@ def main():
 	# Create config
 	create_config()
 
-# Ensure that the user has not run this script before, to avoid overwriting an existing configuration file
+# Check user has not run script before, to avoid overwriting existing configuration file
 def google_config_check():
 	
 	# Check for .google_cromwell.config in ~/
@@ -62,6 +59,7 @@ def google_config_check():
 		print "\nYou already have a Cromwell configuration file. If you would like to clear this setup\nand create a new file, remove (or rename) the hidden file ~/.google_cromwell.config\n"
 		sys.exit("Exiting.")
 
+# Generic function for checking whether a user put in 'yes' or 'no', and loops until they do
 def input_prompt(prompt_text):
 	# Get user input after prompt
 	yes_or_no = raw_input(prompt_text).lower()
@@ -72,7 +70,7 @@ def input_prompt(prompt_text):
 	# Return boolean
 	return yes_or_no.startswith("y")
 
-# Ensure that gcloud SDK is installed, which is necessary to run the rest of the script. 
+# Ensure that gcloud SDK is installed, necessary to run the rest of the script. 
 def sdk_install_check():
 		
 	# If gcloud SDK is not installed, install it.
@@ -102,6 +100,7 @@ def sdk_install_check():
 
 # Which Google Project to use (new or existing)
 def which_google_project():
+	global project_name
 
 	existing_project = input_prompt('\n\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ')
 
@@ -117,10 +116,7 @@ def which_google_project():
 
 		# Create new project
 		if create_new_project:
-			#TODO remove?project_name = find_billing_accounts()
 			find_billing_accounts()
-
-			# Which later creates the google project
 
 		# Don't create project, and exit
 		else:
@@ -130,24 +126,26 @@ def which_google_project():
 
 # Search for user's billing accounts
 def find_billing_accounts():
-	# from https://github.com/lukwam/gcp-tools/blob/master/lib/google.py#L216
-	# create a request to list billingAccounts
+	
+	# Used information from coworker's script here: https://github.com/lukwam/gcp-tools/blob/master/lib/google.py#L216 to check that the user has access to any billing accounts
+	# Create a request to list billingAccounts
     billing_accounts = billing.billingAccounts()
     request = billing_accounts.list()
 
-    # create a list to hold all the projects
+    # Create a list to hold all the projects
     billing_accounts_list = []
 
-    # page through the responses
+    # Page through the responses
     while request is not None:
 
-        # execute the request
+        # Execute the request
         response = request.execute()
 
-        # add projects to the projects list
+        # Add projects to the projects list
         if 'billingAccounts' in response:
             billing_accounts_list.extend(response['billingAccounts'])
 
+        # Create object of billing accounts
         request = billing_accounts.list_next(request, response)
 
     if len(billing_accounts_list) == 0:
@@ -156,9 +154,10 @@ def find_billing_accounts():
         sys.exit("Exiting.")
 
     else:
+    	# User does have access to more than 1 billing accounts
     	print "\nYou have access to the following Google billing accounts: "
     	
-    	# Setup table
+    	# Setup table of billing accounts
     	headers = "Billing Account ID\tBilling Account Name"
     	print headers
     	print '-' * len(headers.expandtabs()) 
@@ -167,6 +166,7 @@ def find_billing_accounts():
     	for billing_acct in billing_accounts_list:
     		print "%s\t%s" % (billing_acct["name"].replace("billingAccounts/",""), billing_acct["displayName"])
 
+    	# Create table of Billing accounts
     	print "\nEnter the \"Billing Account ID\" of the billing account you want to use\nto create a new Google project. This will be the billing account that is charged\nfor storage and compute costs."
     	ex_billing_acct = "002481-B7351F-CD111E"
     	billing_account_id = raw_input("(IDs are case-sensitive and will look similar to this: %s): " % ex_billing_acct)
@@ -175,7 +175,8 @@ def find_billing_accounts():
     	print "\nYou have selected this Billing Account: %s" % billing_account_id
 
     	# Project name with datetime stamp (minute and second) and user's email address
-    	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME, it cannot be longer than 30 characters, nor can it have "google"
+    	# DO NOT PUT AN UNDERSCORE '_' IN THE NAME. The name cannot be longer than 30 characters nor can it have the word 'google'
+    	global project_name
     	user_name = check_output(['gcloud', 'config', 'get-value', 'core/account']).rstrip().partition("@")[0]
     	project_name = "cromwell-%s" % user_name + datetime.datetime.now().strftime("-%M-%S")
     	create_google_project(billing_account_id)
@@ -184,6 +185,7 @@ def find_billing_accounts():
 # Create a google project for the user
 def create_google_project(billing_account_id):
 	global project_name
+
 	# Create google project
 	body = {'project_id': '%s' % project_name, 'name': '%s' % project_name, 'labels': None}
 	crm.projects().create(body=body).execute()
@@ -197,10 +199,11 @@ def create_google_project(billing_account_id):
 
 def check_project_created():
 	global project_name
+
 	# List projects currently created
 	result = crm.projects().list().execute()
 
-	# Search through list of services to see if the API has been enabled  
+	# Search through list of services to see if the project has been created  
 	while True: 
 		if "projects" in result:
 			for s in result["projects"]:
@@ -215,6 +218,8 @@ def check_project_created():
 # Link the newly created Google project to the user's chosen billing account
 def enable_billing_account(billing_account_id):
 	global project_name
+
+	# Setup parameters to update billing
 	body = {"project_id": "%s" % project_name, "billing_account_name": "billingAccounts/%s" % billing_account_id, "billing_enabled": "True"}
 	params = {"name": "projects/%s" % project_name, "body": body}
 	
@@ -229,17 +234,21 @@ def enable_billing_account(billing_account_id):
 
 def check_billing_enabled():
 	global project_name
+
+	# Setup parameters to check billing info
 	params = {"name": "projects/%s" % project_name, "fields":"billingEnabled"}
+
 	# Get current billing info
 	result = billing.projects().getBillingInfo(**params).execute()
 
-	# Search through list of services to see if the API has been enabled  
+	# Check to see if the billing has been enabled  
 	while True: 
 		if "billingEnabled" in result:
 			q = result["billingEnabled"]
 			if True == q:
 				print "Billing is enabled for your project."
-				# A short pause before returning 
+
+				# A short pause before checking again 
 				time.sleep(10)
 				return False
 		print "Linking project to your billing account..."
@@ -249,12 +258,15 @@ def check_billing_enabled():
 def create_google_bucket():
 	global project_name
 	global bucket_name
+
 	print "Step (2) is complete.\n\n\nStep (3): Create a Google bucket, starting now..."
 
+	# Setup parameters to create Google bucket
 	bucket_name = "%s-executions" % project_name
 	body = {"name": "%s" % bucket_name}
 	params = {"project": "%s" % project_name, "body": body}
 
+	# Create Google bucket
 	storage.buckets().insert(**params).execute()
 
 	# Check the bucket was created
@@ -263,11 +275,14 @@ def create_google_bucket():
 	return bucket_name
 
 def check_bucket_created(bucket_name):
+
+	# Setup parameters to check bucket is created
 	params = {"bucket": "%s" % bucket_name, "fields":"timeCreated"}
-	# Get current billing info
+	
+	# Check bucket was created
 	result = storage.buckets().get(**params).execute()
 
-	# Search through list of services to see if the API has been enabled  
+	# Search for bucket in list of existing buckets
 	while True: 
 		if "timeCreated" in result:
 			print "Bucket created successfully. View your new bucket here: https://console.cloud.google.com/storage/browser/%s" % bucket_name
@@ -277,7 +292,7 @@ def check_bucket_created(bucket_name):
 		result = storage.buckets().get(**params).execute()
 
 def create_config():
-	#TODO: will this work without project or bucket name?
+	
 	global project_name
 	global bucket_name
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
@@ -293,7 +308,10 @@ def create_config():
 
 def start_cromwell_test():
 	global project_name
+
 	print "Step (4) is complete.\n\nStep (5): Enable APIs\nTo use your new configuration you will need to enable the following APIs in your Google project:\nGoogle Cloud Storage, Google Cloud Storage JSON, Google Compute Engine, Google Genomics."
+
+	# Ask if user wants to enable APIs
 	enable_apis = input_prompt('\nWould you like to enable these APIs now? (yes or no) ')
 	
 	# Enable APIs
@@ -311,25 +329,32 @@ def start_cromwell_test():
 			hello_test()
 
 		else:
+			# User doesn't want to test config
 			print "You are now ready to use Cromwell to run pipelines on Google Cloud.\nNext you can run a simple WDL with the Five Minute Tutorial here: http://cromwell.readthedocs.io/en/develop/tutorials/FiveMinuteIntro/\n"
 			sys.exit("Exiting.")
 
-	# Don't enable APIs, and exit
+	# Don't enable APIs and exit
 	else:
 		print "Don't forget to enable the APIs through the Google Console prior to using the configuration."
 		sys.exit("Exiting.")
 
 def enable_services(service_name):
 	global project_name
+
+	# Setup parameters to enable APIs
 	body = {"consumerId": "project:%s" % project_name}
 	params = {"serviceName": "%s" % service_name, "body": body}
+
+	# Enable APIs
 	smgt.services().enable(**params).execute()
 
-	# Check that the service is enabled
+	# Check that the APIs are enabled
 	check_services_enabled(service_name)
 
 def check_services_enabled(service_name):
 	global project_name
+
+	# Setup parameters to check APIs
 	params = {"consumerId": "project:%s" % project_name, "fields":"services/serviceName"}
 
 	# List services currently enabled
@@ -347,27 +372,14 @@ def check_services_enabled(service_name):
 		result = smgt.services().list(**params).execute()
 
 def hello_test():
-	# Create WDL
-	print "Creating WDL file..."
-	#TODO: is this necessary?
-	hello_wdl = hello_wdl
-	with open("hello.wdl","w+") as f:
-		f.write(hello_wdl)
-	print "Your WDL file is ready! It is stored as hello.wdl."
-
-	# Create Inputs file
-	print "Creating inputs file..."
-	#TODO: is this necessary?
-	hello_inputs = hello_inputs
-	with open("hello.inputs", "w+") as f:
-		f.write(hello_inputs)
-	print "Your inputs file is ready! It is stored as hello.inputs."
-
 	# Download latest Cromwell
 	print "Downloading latest version of Cromwell execution engine..."
+
+	# Get latest Cromwell release
 	r = requests.get('https://api.github.com/repos/broadinstitute/cromwell/releases/latest')
 	s = r.json()
 	t = json.dumps(s)
+	# Find exact URL to download the Cromwell JAR
 	for asset in s["assets"]:
 		if "cromwell-" in asset["browser_download_url"]:
 			download_url = asset["browser_download_url"]
@@ -378,11 +390,8 @@ def hello_test():
 	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test...\n\nRunning $ %s\n" % test_configuration
 	os.system(test_configuration)
 
-	#TODO check if actually successful
 	# Success
 	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
-
-	#Tell users what to do (look at docs etc) if failed
 
 if __name__ == "__main__":
     main()
