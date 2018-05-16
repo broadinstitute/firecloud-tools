@@ -401,7 +401,7 @@ def hello_test():
 	check_test_results()
 
 	# Success
-	print "The test workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
+	print "The test workflow succeeded!\nOutputs for this workflow can be found in https://console.cloud.google.com/storage/browser/%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
 
 # Check that the run was successful
 def check_test_results():
@@ -410,16 +410,16 @@ def check_test_results():
 	param = {"bucket": "%s" % bucket_name, "object": ""}
 	stout_contents = storage.objects().get(**param).execute()
 	for obj in stout_contents["items"]:
-		if "hello-stdout.log" in obj["name"]:
+		if "hello-rc.txt" in obj["name"]:
 			result_rc = obj["name"]
 
-			# Get the stout to check the run was successful
+			# Get the rc (return code) to check the run was successful
 			params = {"bucket": "%s" % bucket_name, "object":"%s" % result_rc}
 			result = storage.objects().get_media(**params).execute()
-			if result in "Hello World! Welcome to Cromwell . . . on Google Cloud!":
+			if "0" in result:
 				return True
 			else:
-				print "The test workflow failed. See the Google Bucket here for more information: https://console.cloud.google.com/storage/browser/%s" % bucket_name
+				print "The test workflow failed. Look at the Google Bucket for more information: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 
 if __name__ == "__main__":
     main()
