@@ -102,7 +102,7 @@ def sdk_install_check():
 def which_google_project():
 	global project_name
 
-	existing_project = input_prompt('\n\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ')
+	existing_project = input_prompt('\nStep (2): Do you have an existing Google project where you want to run workflows? (yes or no) ')
 
 	# User has existing project
 	if existing_project:
@@ -271,12 +271,13 @@ def create_google_bucket():
 	storage.buckets().insert(**params).execute()
 
 	# Check the bucket was created
-	check_bucket_created(bucket_name)
+	check_bucket_created()
 
 	return bucket_name
 
 # Confirm that the bucket has been created
-def check_bucket_created(bucket_name):
+def check_bucket_created():
+	global bucket_name
 
 	# Setup parameters to check bucket is created
 	params = {"bucket": "%s" % bucket_name, "fields":"timeCreated"}
@@ -295,12 +296,11 @@ def check_bucket_created(bucket_name):
 
 # Create the Cromwell configuration file
 def create_config():
-	
 	global project_name
 	global bucket_name
 	print "Step (3) is complete.\n\nStep (4): Create configuration file, starting now..."
 
-	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the \`google\` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
+	config_contents = "include required(classpath(\"application\"))\n\ngoogle {\n\n\tapplication-name = \"cromwell\"\n\n\tauths = [\n\t\t{\n\t\t\tname = \"application-default\"\n\t\t\tscheme = \"application_default\"\n\t\t}\n\t]\n}\n\nengine {\n\tfilesystems {\n\t\tgcs {\n\t\t\tauth = \"application-default\"\n\t\t}\n\t}\n}\n\nbackend {\n\tdefault = \"JES\"\n\tproviders {\n\t\tJES {\n\t\t\tactor-factory = \"cromwell.backend.impl.jes.JesBackendLifecycleActorFactory\"\n\t\t\tconfig {\n\t\t\t\t// Google project\n\t\t\t\tproject = \"%s\"\n\t\t\t\tcompute-service-account = \"default\"\n\n\t\t\t\t// Base bucket for workflow executions\n\t\t\t\troot = \"gs://%s\"\n\n\t\t\t\t// Polling for completion backs-off gradually for slower-running jobs.\n\t\t\t\t// This is the maximum polling interval (in seconds):\n\t\t\t\tmaximum-polling-interval = 600\n\n\t\t\t\t// Optional Dockerhub Credentials. Can be used to access private docker images.\n\t\t\t\tdockerhub {\n\t\t\t\t\t// account = \"\"\n\t\t\t\t\t// token = \"\"\n\t\t\t\t}\n\n\t\t\t\tgenomics {\n\t\t\t\t\t// A reference to an auth defined in the `google` stanza at the top.  This auth is used to create\n\t\t\t\t\t// Pipelines and manipulate auth JSONs.\n\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t// Endpoint for APIs, no reason to change this unless directed by Google.\n\t\t\t\t\tendpoint-url = \"https://genomics.googleapis.com/\"\n\t\t\t\t}\n\n\t\t\t\tfilesystems {\n\t\t\t\t\tgcs {\n\t\t\t\t\t\t// A reference to a potentially different auth for manipulating files via engine functions.\n\t\t\t\t\t\tauth = \"application-default\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}" % (project_name, bucket_name)
 
 	# Create configuration file
 	with open(home + "/.google_cromwell.config","w+") as f:
@@ -397,8 +397,29 @@ def hello_test():
 	print "Cromwell is downloaded and ready for operation.\n\nStarting Hello World test...\n\nRunning $ %s\n" % test_configuration
 	os.system(test_configuration)
 
+	# Check that the test was successful
+	check_test_results()
+
 	# Success
-	print "Workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
+	print "The test workflow succeeded!\nOutputs for this workflow can be found in gs://%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
+
+# Check that the run was successful
+def check_test_results():
+
+	# Get the test run contents
+	param = {"bucket": "%s" % bucket_name, "object": ""}
+	stout_contents = storage.objects().get(**param).execute()
+	for obj in stout_contents["items"]:
+		if "hello-stdout.log" in obj["name"]:
+			result_rc = obj["name"]
+
+			# Get the stout to check the run was successful
+			params = {"bucket": "%s" % bucket_name, "object":"%s" % result_rc}
+			result = storage.objects().get_media(**params).execute()
+			if result in "Hello World! Welcome to Cromwell . . . on Google Cloud!":
+				return True
+			else:
+				print "The test workflow failed. See the Google Bucket here for more information: https://console.cloud.google.com/storage/browser/%s" % bucket_name
 
 if __name__ == "__main__":
     main()
