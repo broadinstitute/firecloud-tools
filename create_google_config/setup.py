@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='Cromwell Config setup',
       version='1.0',
@@ -7,5 +7,13 @@ setup(name='Cromwell Config setup',
       author='Kate Voss',
       author_email='kvoss@broadinstitute.org',
       url='https://github.com/broadinstitute/firecloud-tools',
-      packages=['google-api-python-client', 'google.auth', 'google.cloud', 'apiclient.discovery'],
+      install_requires=[
+      	'google-api-python-client', 
+      	'google-auth', 
+      	'google-cloud',
+      	'google-cloud-core',
+      	'google-cloud-resource-manager',
+      	'google-api-core',
+      	'google-cloud-storage' 
+      	],
      )

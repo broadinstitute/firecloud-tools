@@ -4,10 +4,8 @@ import sys, os
 # Import GoogleCredentials
 from googleapiclient.discovery import build
 from oauth2client.client import GoogleCredentials
-import google.auth
 from oauth2client.file import Storage
 from subprocess import check_output
-from google.cloud import resource_manager, storage
 
 # Import utilities
 import json
@@ -401,7 +399,7 @@ def hello_test():
 	check_test_results()
 
 	# Success
-	print "The test workflow succeeded!\nOutputs for this workflow can be found in https://console.cloud.google.com/storage/browser/%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
+	print "\nThe test workflow succeeded!\nOutputs for this workflow can be found in https://console.cloud.google.com/storage/browser/%s\n\nYou have successfully set up your Google Project, Bucket, and configuration. \nCheck out the WDL website for more information on writing your own workflows: https://software.broadinstitute.org/wdl/documentation/quickstart.\n" % bucket_name
 
 # Check that the run was successful
 def check_test_results():
