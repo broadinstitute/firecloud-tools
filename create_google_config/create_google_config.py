@@ -418,6 +418,8 @@ def check_test_results():
 				return True
 			else:
 				print "The test workflow failed. Look at the Google Bucket for more information: https://console.cloud.google.com/storage/browser/%s" % bucket_name
+				sys.exit("Exiting.")
+
 
 if __name__ == "__main__":
     main()
