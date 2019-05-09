@@ -5,4 +5,8 @@ In order to run this script you will need to download the credentials JSON file 
 
 Usage (from the main directory where run.sh resides):
 
-```./run.sh scripts/register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account>```
+```./run.sh scripts/register_service_account/register_service_account.py -j <path to your service account credentials json file> -e <email address for owner of this service account, it's where notifications will go>```
+
+Usage (using Docker):
+
+```docker run --rm -it -v "$HOME"/.config:/.config -v <path to your service account credentials json file>:/svc.json broadinstitute/firecloud-tools python /scripts/register_service_account/register_service_account.py -j /svc.json -e <email address for owner of this service account, it's where notifications will go>```
