@@ -50,29 +50,5 @@ def main():
         firecloud_api.upload_entities_tsv(args.ws_project, args.ws_name, replaced_entities_tsv_path)
         print("\tdone.")
 
-    # tsv_strings = []
-    # with open(args.tsv_file, "r") as tsvfile:
-    #     headers = tsvfile.readline()
-
-    #     tsv_data = headers
-    #     for i, line in enumerate(tsvfile):
-    #         tsv_data += line
-
-    #         if i > 0 and i % 200 == 0:
-    #             tsv_strings.append(tsv_data)
-    #             tsv_data = headers
-
-    #     # catch the last lines from the tsv file that aren't caught by the % above
-    #     tsv_strings.append(tsv_data)
-
-    #     pb = ProgressBar(0, len(tsv_strings), "Split TSV files uploaded")
-    #     pb.print_bar()
-    #     for tsv_string in tsv_strings:
-    #         request = firecloud_api.upload_entities(args.ws_namespace, args.ws_name, tsv_string)
-    #         if request.status_code != 200:
-    #             fail(request.text)
-    #         pb.increment()
-    #         pb.print_bar()
-
 if __name__ == "__main__":
     main()
