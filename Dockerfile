@@ -7,6 +7,10 @@ RUN /install.sh
 ENV HOME=/
 
 COPY scripts /scripts
+
+# install python3 to make that also available
+RUN apt-get update; apt-get install -y python3 python3-pip
+
 ENV PYTHONPATH "/scripts:${PYTHONPATH}"
 
 CMD ["/bin/bash"]
