@@ -27,6 +27,8 @@ RUN rm /usr/bin/lsb_release \
     && apt-get install python3-pip idle3 -y \ 
     && python3 -m pip install --no-cache-dir --upgrade pip
 
+RUN pip3 install firecloud
+
 ENV PYTHONPATH "/scripts:${PYTHONPATH}"
 
 CMD ["/bin/bash"]
