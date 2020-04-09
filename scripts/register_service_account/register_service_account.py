@@ -11,6 +11,10 @@ def main():
     parser.add_argument('-e', '--owner_email', dest='owner_email', action='store', required=True, help='Email address of the person who owns this service account')
     parser.add_argument('-u', '--url', dest='fc_url', action='store', default="https://api.firecloud.org", required=False, help='Base url of FireCloud server to contact (default https://api.firecloud.org)')
 
+    # Additional arguments
+    parser.add_argument('-f', '--first_name', dest='first_name', action='store', default="None", required=False, help='First name to register for user')
+    parser.add_argument('-l', '--last_name', dest='last_name', action='store', default="None", required=False, help='Last name to register for user')
+
     args = parser.parse_args()
 
     from oauth2client.service_account import ServiceAccountCredentials
@@ -21,13 +25,21 @@ def main():
 
     uri = args.fc_url + "/register/profile"
 
-    profile_json = {"firstName":"None", "lastName": "None", "title":"None", "contactEmail":args.owner_email,
-                               "institute":"None", "institutionalProgram": "None", "programLocationCity": "None", "programLocationState": "None",
-                               "programLocationCountry": "None", "pi": "None", "nonProfitStatus": "false"}
+    profile_json = {"firstName": args.first_name,
+                    "lastName": args.last_name,
+                    "title": "None",
+                    "contactEmail": args.owner_email,
+                    "institute": "None",
+                    "institutionalProgram": "None",
+                    "programLocationCity": "None",
+                    "programLocationState": "None",
+                    "programLocationCountry": "None",
+                    "pi": "None",
+                    "nonProfitStatus": "false"}
     request = requests.post(uri, headers=headers, json=profile_json)
 
     if request.status_code == 200:
-        print "The service account %s is now registered with FireCloud.  You can share workspaces with this address, or use it to call APIs." % credentials._service_account_email
+        print("The service account %s is now registered with FireCloud. You can share workspaces with this address, or use it to call APIs." % credentials._service_account_email)
     else:
         fail("Unable to register service account: %s" % request.text)
 
