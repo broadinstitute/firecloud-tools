@@ -59,12 +59,12 @@ class ProgressBar:
         width = 50
 
         bar_width = int(math.ceil(width * percent))
-        print "\r%s[%s%s] %s/%s %s" % (
+        print("\r%s[%s%s] %s/%s %s" % (
             "\t" * self.num_tabs, "=" * bar_width, " " * (width - bar_width), self.val.value, self.max,
-            self.description),
+            self.description)),
 
         if self.val.value >= max:
-            print "\n"
+            print("\n")
 
         sys.stdout.flush()
 
@@ -74,7 +74,7 @@ class ProgressBar:
 
 def print_fields(obj):
     for item in vars(obj).items():
-        print item
+        print(item)
 
 
 class DefaultArgsParser:
@@ -233,5 +233,5 @@ def prompt_to_continue(msg):
     elif choice in no:
         return False
     else:
-        print "Please respond with 'yes' or 'no'"
+        print("Please respond with 'yes' or 'no'")
         prompt_to_continue(msg)
