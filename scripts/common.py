@@ -74,7 +74,7 @@ class ProgressBar:
 
 def print_fields(obj):
     for item in vars(obj).items():
-        print (item)
+        print(item)
 
 
 class DefaultArgsParser:
