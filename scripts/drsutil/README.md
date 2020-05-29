@@ -1,5 +1,5 @@
 ## Quick and dirty tool to help make use of DRS URIs as though you were using gsutil
-This script acts as though you are using gsutil when you have a DRS URI in Terra/FireCloud. 
+This script acts as though you are using gsutil when you have a DRS URI in Terra/FireCloud.  This is *very* experimental.
 
 Usage:
 
