@@ -9,7 +9,7 @@ def main():
     # Core application arguments
     parser.add_argument('-j', '--json_credentials', dest='json_credentials', action='store', required=True, help='Path to the json credentials file for this service account.')
     parser.add_argument('-e', '--owner_email', dest='owner_email', action='store', required=True, help='Email address of the person who owns this service account')
-    parser.add_argument('-u', '--url', dest='fc_url', action='store', default="https://api.firecloud.org", required=False, help='Base url of FireCloud server to contact (dev: "https://firecloud-orchestration.dsde-dev.broadinstitute.org")')
+    parser.add_argument('-u', '--url', dest='fc_url', action='store', default="https://api.firecloud.org", required=False, help='Base url of FireCloud server to contact (Default Prod URL: "https://api.firecloud.org", Dev URL: "https://firecloud-orchestration.dsde-dev.broadinstitute.org")')
 
     # Additional arguments
     parser.add_argument('-f', '--first_name', dest='first_name', action='store', default="None", required=False, help='First name to register for user')
