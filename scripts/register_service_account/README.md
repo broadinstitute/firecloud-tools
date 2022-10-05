@@ -32,5 +32,5 @@ Once the above VM is created and running, you can SSH to it. API requests made w
 ```
 python3 register_sa.py --owner_email=my_email@domain.com --first_name=Foo --last_name=Sa
 ```
-  2.7.  If it worked, the script should output something like
+    7.  If it worked, the script should output something like
 ```The service account foo-example-sa@terra-foo-foo-dev.iam.gserviceaccount.com is now registered with FireCloud. You can share workspaces with this address, or use it to call APIs.```
