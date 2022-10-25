@@ -27,7 +27,10 @@ def main():
     credentials, project = google.auth.default(scopes=scopes)
     authed_session = AuthorizedSession(credentials)
 
-    headers = {"User-Agent": fapi.FISS_USER_AGENT}
+    headers = {
+        "User-Agent": fapi.FISS_USER_AGENT,
+        "Content-Type": "application/json",
+    }
 
     uri = args.fc_url + "/register/profile"
 

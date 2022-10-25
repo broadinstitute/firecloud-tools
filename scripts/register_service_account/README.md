@@ -44,7 +44,7 @@ Once the above VM is created and running, you can SSH to it. API requests made w
     3. Install google-auth, urllib3 and firecloud via `pip3 install google-auth urllib3 firecloud`
     4. Run the `register_service_account_no_keyfile.py` script
     ```
-    python3 register_sa.py --owner_email=my_email@domain.com --first_name=Foo --last_name=Sa
+    python3 register_service_account_no_keyfile.py --owner_email=my_email@domain.com --first_name=Foo --last_name=Sa
     ```
     5.  If it worked, the script should output something like
 ```The service account foo-example-sa@terra-foo-foo-dev.iam.gserviceaccount.com is now registered with FireCloud. You can share workspaces with this address, or use it to call APIs.```
