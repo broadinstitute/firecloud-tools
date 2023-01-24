@@ -7,7 +7,7 @@ def main():
     parser = ArgumentParser(description="Register a service account for use in FireCloud.")
 
     # Core application arguments
-    parser.add_argument('-j', '--json_credentials', dest='json_credentials', action='store', required=True, help='Path to the json credentials file for this service account.')
+    parser.add_argument('-j', '--json_credentials', dest='json_credentials', action='store', help='Path to the json credentials file for this service account.')
     parser.add_argument('-e', '--owner_email', dest='owner_email', action='store', required=True, help='Email address of the person who owns this service account')
     parser.add_argument('-u', '--url', dest='fc_url', action='store', default="https://api.firecloud.org", required=False, help='Base url of FireCloud server to contact (Default Prod URL: "https://api.firecloud.org", Dev URL: "https://firecloud-orchestration.dsde-dev.broadinstitute.org")')
 
@@ -16,11 +16,20 @@ def main():
     parser.add_argument('-l', '--last_name', dest='last_name', action='store', default="None", required=False, help='Last name to register for user')
 
     args = parser.parse_args()
-
-    from oauth2client.service_account import ServiceAccountCredentials
-    scopes = ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(args.json_credentials, scopes=scopes)
-    headers = {"Authorization": "bearer " + credentials.get_access_token().access_token}
+    
+    if args.json_credentials:
+        from oauth2client.service_account import ServiceAccountCredentials
+        scopes = ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email']
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(args.json_credentials, scopes=scopes)
+        access_token = credentials.get_access_token().access_token
+    else:
+        print('-j / --json_credentials was not provided. Attempting to contact metadata.google.internal. This will only work from a GCP VM.')
+        resp = requests.get('http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
+                            headers={'Metadata-Flavor': 'Google'})
+        resp.raise_for_status()
+        access_token = resp.json()['access_token']
+        
+    headers = {"Authorization": "bearer " + access_token}
     headers["User-Agent"] = firecloud_api.FISS_USER_AGENT
 
     uri = args.fc_url + "/register/profile"
