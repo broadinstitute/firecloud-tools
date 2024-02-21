@@ -1,3 +1,6 @@
+> [!WARNING]
+> This repository is deprecated. Use [terra-tools](https://github.com/broadinstitute/terra-tools) instead.
+
 # Tools for use with FireCloud
 To run a given script using the run script:
 
