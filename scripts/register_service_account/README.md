@@ -1,3 +1,5 @@
+> [!WARNING]
+> This repository is deprecated. Use [terra-tools](https://github.com/broadinstitute/terra-tools) instead.
 
 ## Register a service account for use in FireCloud
 This script will register a service account so that it can be used in FireCloud.  This means that the service account can be used to call any of the FireCloud APIs, and that a given workspace/method can be shared with the service account.  Note that a service account CANNOT be used to launch a method configuration at this time.
